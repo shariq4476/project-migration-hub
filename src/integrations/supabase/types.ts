@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          detail: string | null
+          id: string
+          target: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          target?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          target?: string | null
+        }
+        Relationships: []
+      }
       bids: {
         Row: {
           amount: number
@@ -394,22 +421,34 @@ export type Database = {
       }
       payment_settings: {
         Row: {
+          bank_transfer_details: string
           binance_pay_id: string
+          easypaisa_account: string
           id: number
+          jazzcash_account: string
+          raast_id: string
           updated_at: string
           usdt_bep20_address: string
           usdt_trc20_address: string
         }
         Insert: {
+          bank_transfer_details?: string
           binance_pay_id?: string
+          easypaisa_account?: string
           id?: number
+          jazzcash_account?: string
+          raast_id?: string
           updated_at?: string
           usdt_bep20_address?: string
           usdt_trc20_address?: string
         }
         Update: {
+          bank_transfer_details?: string
           binance_pay_id?: string
+          easypaisa_account?: string
           id?: number
+          jazzcash_account?: string
+          raast_id?: string
           updated_at?: string
           usdt_bep20_address?: string
           usdt_trc20_address?: string
@@ -447,24 +486,30 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_type: string
           bio: string | null
           created_at: string
           display_name: string
           id: string
+          suspended: boolean
           updated_at: string
         }
         Insert: {
+          account_type?: string
           bio?: string | null
           created_at?: string
           display_name?: string
           id: string
+          suspended?: boolean
           updated_at?: string
         }
         Update: {
+          account_type?: string
           bio?: string | null
           created_at?: string
           display_name?: string
           id?: string
+          suspended?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -565,18 +610,21 @@ export type Database = {
       }
       site_settings: {
         Row: {
+          announcement: string
           commission_rate: number
           id: number
           support_email: string
           updated_at: string
         }
         Insert: {
+          announcement?: string
           commission_rate?: number
           id?: number
           support_email?: string
           updated_at?: string
         }
         Update: {
+          announcement?: string
           commission_rate?: number
           id?: number
           support_email?: string
@@ -678,6 +726,37 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_delete_listing: { Args: { _listing: string }; Returns: undefined }
+      admin_list_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          deals: number
+          display_name: string
+          email: string
+          id: string
+          listings: number
+          roles: string[]
+        }[]
+      }
+      admin_log: {
+        Args: { _action: string; _detail: string; _target: string }
+        Returns: undefined
+      }
+      admin_set_announcement: { Args: { _text: string }; Returns: undefined }
+      admin_set_commission: { Args: { _rate: number }; Returns: undefined }
+      admin_set_role: {
+        Args: {
+          _grant: boolean
+          _role: Database["public"]["Enums"]["app_role"]
+          _user: string
+        }
+        Returns: undefined
+      }
+      admin_set_suspended: {
+        Args: { _suspended: boolean; _user: string }
+        Returns: undefined
+      }
       auction_summary: {
         Args: { _listing: string }
         Returns: {
@@ -698,8 +777,12 @@ export type Database = {
       deal_payment_settings: {
         Args: { _deal: string }
         Returns: {
+          bank_transfer_details: string
           binance_pay_id: string
+          easypaisa_account: string
           id: number
+          jazzcash_account: string
+          raast_id: string
           updated_at: string
           usdt_bep20_address: string
           usdt_trc20_address: string
