@@ -1,0 +1,97 @@
+create type public.app_role as enum ('admin','moderator','user');
+create type public.listing_status as enum ('draft','pending','approved','rejected','in_progress','sold','suspended');
+create type public.deal_stage as enum ('agreement','payment_submitted','payment_verified','transferring','delivered','completed','disputed','refunded','cancelled');
+create table public.profiles(id uuid primary key references auth.users(id) on delete cascade, display_name text not null default 'Member', bio text, created_at timestamptz not null default now(), updated_at timestamptz not null default now());
+grant select on public.profiles to anon, authenticated; grant update(display_name,bio,updated_at) on public.profiles to authenticated; grant all on public.profiles to service_role;
+alter table public.profiles enable row level security;
+create policy profiles_read on public.profiles for select to anon,authenticated using(true);
+create policy profiles_update on public.profiles for update to authenticated using(id=auth.uid()) with check(id=auth.uid());
+create table public.user_roles(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,role public.app_role not null,unique(user_id,role));
+grant select on public.user_roles to authenticated; grant all on public.user_roles to service_role;
+alter table public.user_roles enable row level security;
+create function public.has_role(_user_id uuid,_role public.app_role) returns boolean language sql stable security definer set search_path=public as $$select exists(select 1 from public.user_roles where user_id=_user_id and role=_role)$$;
+revoke execute on function public.has_role(uuid,public.app_role) from public,anon; grant execute on function public.has_role(uuid,public.app_role) to authenticated,service_role;
+create policy roles_read on public.user_roles for select to authenticated using(user_id=auth.uid() or public.has_role(auth.uid(),'admin'));
+create function public.handle_new_user() returns trigger language plpgsql security definer set search_path=public as $$begin insert into public.profiles(id,display_name) values(new.id,coalesce(nullif(new.raw_user_meta_data->>'display_name',''),nullif(new.raw_user_meta_data->>'full_name',''),'Member')); insert into public.user_roles(user_id,role) values(new.id,'user'); return new; end$$;
+create trigger on_auth_user_created after insert on auth.users for each row execute function public.handle_new_user();
+revoke execute on function public.handle_new_user() from public,anon,authenticated;
+create table public.site_settings(id int primary key default 1 check(id=1),commission_rate numeric not null default .10 check(commission_rate between 0 and 1),support_email text not null default 'support@clicksspot.com',updated_at timestamptz not null default now());
+grant select on public.site_settings to anon,authenticated; grant update on public.site_settings to authenticated; grant all on public.site_settings to service_role;
+alter table public.site_settings enable row level security;
+create policy settings_read on public.site_settings for select to anon,authenticated using(true);
+create policy settings_update on public.site_settings for update to authenticated using(public.has_role(auth.uid(),'admin')) with check(public.has_role(auth.uid(),'admin'));
+create table public.payment_settings(id int primary key default 1 check(id=1),binance_pay_id text not null default '',usdt_trc20_address text not null default '',usdt_bep20_address text not null default '',updated_at timestamptz not null default now());
+grant select,insert,update on public.payment_settings to authenticated; grant all on public.payment_settings to service_role;
+alter table public.payment_settings enable row level security;
+create policy payment_admin on public.payment_settings for all to authenticated using(public.has_role(auth.uid(),'admin')) with check(public.has_role(auth.uid(),'admin'));
+create table public.listings(id uuid primary key default gen_random_uuid(),slug text unique not null default substr(md5(random()::text),1,10),seller_id uuid references public.profiles(id) on delete set null,seller_name text,title text not null check(length(title) between 5 and 180),category text not null check(category in ('website','domain','ecommerce','saas','app','content')),sale_type text not null default 'fixed' check(sale_type in ('fixed','auction')),price numeric not null check(price>0),monthly_revenue numeric not null default 0 check(monthly_revenue>=0),monthly_profit numeric not null default 0,monthly_traffic int not null default 0 check(monthly_traffic>=0),age_years int not null default 0 check(age_years>=0),summary text not null,description text not null default '',url text,images text[] not null default '{}',verified text[] not null default '{}',featured boolean not null default false,status public.listing_status not null default 'pending',ends_at timestamptz,created_at timestamptz not null default now(),updated_at timestamptz not null default now());
+grant select on public.listings to anon,authenticated; grant insert(seller_id,title,category,sale_type,price,monthly_revenue,monthly_profit,monthly_traffic,age_years,summary,description,url,images,status,ends_at) on public.listings to authenticated; grant update(title,category,sale_type,price,monthly_revenue,monthly_profit,monthly_traffic,age_years,summary,description,url,images,status,ends_at,updated_at) on public.listings to authenticated; grant delete on public.listings to authenticated; grant all on public.listings to service_role;
+alter table public.listings enable row level security;
+create policy listings_public on public.listings for select to anon,authenticated using(status in ('approved','in_progress','sold'));
+create policy listings_owner on public.listings for select to authenticated using(seller_id=auth.uid());
+create policy listings_admin on public.listings for select to authenticated using(public.has_role(auth.uid(),'admin'));
+create policy listings_insert on public.listings for insert to authenticated with check(seller_id=auth.uid() and status in ('draft','pending') and featured=false and cardinality(verified)=0);
+create policy listings_edit on public.listings for update to authenticated using(seller_id=auth.uid() and status in ('draft','pending','rejected')) with check(seller_id=auth.uid() and status in ('draft','pending') and featured=false and cardinality(verified)=0);
+create policy listings_delete on public.listings for delete to authenticated using(seller_id=auth.uid() and status in ('draft','pending','rejected'));
+create index listings_browse on public.listings(status,created_at desc); create index listings_seller on public.listings(seller_id);
+create table public.listing_reviews(listing_id uuid primary key references public.listings(id) on delete cascade,admin_note text,ownership_method text not null default 'dns',ownership_evidence text not null default '',updated_at timestamptz not null default now());
+grant select,insert,update on public.listing_reviews to authenticated; grant all on public.listing_reviews to service_role;
+alter table public.listing_reviews enable row level security;
+create policy review_read on public.listing_reviews for select to authenticated using(exists(select 1 from public.listings l where l.id=listing_id and l.seller_id=auth.uid()) or public.has_role(auth.uid(),'admin'));
+create policy review_insert on public.listing_reviews for insert to authenticated with check(admin_note is null and exists(select 1 from public.listings l where l.id=listing_id and l.seller_id=auth.uid() and l.status in ('draft','pending','rejected')));
+create policy review_update on public.listing_reviews for update to authenticated using(public.has_role(auth.uid(),'admin')) with check(public.has_role(auth.uid(),'admin'));
+create table public.offers(id uuid primary key default gen_random_uuid(),listing_id uuid not null references public.listings(id) on delete cascade,buyer_id uuid not null references public.profiles(id),amount numeric not null check(amount>0),message text,status text not null default 'pending' check(status in ('pending','accepted','rejected','withdrawn')),created_at timestamptz not null default now(),updated_at timestamptz not null default now());
+grant select on public.offers to authenticated; grant all on public.offers to service_role;
+alter table public.offers enable row level security;
+create policy offers_read on public.offers for select to authenticated using(buyer_id=auth.uid() or exists(select 1 from public.listings l where l.id=listing_id and l.seller_id=auth.uid()) or public.has_role(auth.uid(),'admin'));
+create table public.bids(id uuid primary key default gen_random_uuid(),listing_id uuid not null references public.listings(id) on delete cascade,buyer_id uuid not null references public.profiles(id),amount numeric not null check(amount>0),created_at timestamptz not null default now());
+grant select on public.bids to authenticated; grant all on public.bids to service_role;
+alter table public.bids enable row level security;
+create policy bids_read on public.bids for select to authenticated using(buyer_id=auth.uid() or exists(select 1 from public.listings l where l.id=listing_id and l.seller_id=auth.uid()) or public.has_role(auth.uid(),'admin'));
+create index bids_listing on public.bids(listing_id,amount desc);
+create table public.deals(id uuid primary key default gen_random_uuid(),listing_id uuid not null references public.listings(id),buyer_id uuid not null references public.profiles(id),seller_id uuid not null references public.profiles(id),offer_id uuid references public.offers(id),amount numeric not null check(amount>0),commission numeric not null,stage public.deal_stage not null default 'agreement',payment_method text,payment_txid text unique,payment_note text,transfer_notes text,dispute_reason text,payout_reference text,payout_paid_at timestamptz,created_at timestamptz not null default now(),updated_at timestamptz not null default now());
+grant select on public.deals to authenticated; grant all on public.deals to service_role;
+alter table public.deals enable row level security;
+create policy deals_read on public.deals for select to authenticated using(buyer_id=auth.uid() or seller_id=auth.uid() or public.has_role(auth.uid(),'admin'));
+create table public.deal_events(id uuid primary key default gen_random_uuid(),deal_id uuid not null references public.deals(id) on delete cascade,author_id uuid references public.profiles(id),kind text not null default 'message' check(kind in ('message','system')),body text not null check(length(body) between 1 and 4000),created_at timestamptz not null default now());
+grant select,insert on public.deal_events to authenticated; grant all on public.deal_events to service_role;
+alter table public.deal_events enable row level security;
+create policy events_read on public.deal_events for select to authenticated using(exists(select 1 from public.deals d where d.id=deal_id and (d.buyer_id=auth.uid() or d.seller_id=auth.uid())) or public.has_role(auth.uid(),'admin'));
+create policy events_insert on public.deal_events for insert to authenticated with check(kind='message' and author_id=auth.uid() and (exists(select 1 from public.deals d where d.id=deal_id and (d.buyer_id=auth.uid() or d.seller_id=auth.uid())) or public.has_role(auth.uid(),'admin')));
+create index events_deal on public.deal_events(deal_id,created_at);
+create table public.deal_files(id uuid primary key default gen_random_uuid(),deal_id uuid not null references public.deals(id) on delete cascade,uploader_id uuid not null references public.profiles(id),path text not null unique,name text not null,kind text not null default 'attachment',created_at timestamptz not null default now());
+grant select,insert on public.deal_files to authenticated; grant all on public.deal_files to service_role;
+alter table public.deal_files enable row level security;
+create policy files_read on public.deal_files for select to authenticated using(exists(select 1 from public.deals d where d.id=deal_id and (d.buyer_id=auth.uid() or d.seller_id=auth.uid())) or public.has_role(auth.uid(),'admin'));
+create policy files_insert on public.deal_files for insert to authenticated with check(uploader_id=auth.uid() and split_part(path,'/',1)=deal_id::text and split_part(path,'/',2)=auth.uid()::text and exists(select 1 from public.deals d where d.id=deal_id and (d.buyer_id=auth.uid() or d.seller_id=auth.uid() or public.has_role(auth.uid(),'admin'))));
+create table public.payout_details(user_id uuid primary key references public.profiles(id) on delete cascade,method text not null default 'binance_pay' check(method in ('binance_pay','usdt_trc20','usdt_bep20')),account text not null check(length(trim(account)) between 3 and 200),updated_at timestamptz not null default now());
+grant select,insert,update,delete on public.payout_details to authenticated; grant all on public.payout_details to service_role;
+alter table public.payout_details enable row level security;
+create policy payout_read on public.payout_details for select to authenticated using(user_id=auth.uid() or public.has_role(auth.uid(),'admin'));
+create policy payout_write on public.payout_details for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+create table public.watchlist(user_id uuid not null references public.profiles(id) on delete cascade,listing_id uuid not null references public.listings(id) on delete cascade,created_at timestamptz not null default now(),primary key(user_id,listing_id));
+grant select,insert,delete on public.watchlist to authenticated; grant all on public.watchlist to service_role;
+alter table public.watchlist enable row level security;
+create policy watch_own on public.watchlist for all to authenticated using(user_id=auth.uid()) with check(user_id=auth.uid());
+create table public.reports(id uuid primary key default gen_random_uuid(),user_id uuid not null references public.profiles(id),listing_id uuid not null references public.listings(id),reason text not null check(length(reason) between 5 and 2000),status text not null default 'open' check(status in ('open','resolved')),created_at timestamptz not null default now());
+grant select on public.reports to authenticated; grant insert(user_id,listing_id,reason) on public.reports to authenticated; grant update(status) on public.reports to authenticated; grant all on public.reports to service_role;
+alter table public.reports enable row level security;
+create policy reports_read on public.reports for select to authenticated using(user_id=auth.uid() or public.has_role(auth.uid(),'admin'));
+create policy reports_create on public.reports for insert to authenticated with check(user_id=auth.uid() and status='open');
+create policy reports_resolve on public.reports for update to authenticated using(public.has_role(auth.uid(),'admin'));
+create table public.support_tickets(id uuid primary key default gen_random_uuid(),user_id uuid not null references public.profiles(id),subject text not null check(length(subject) between 3 and 180),body text not null check(length(body) between 10 and 4000),status text not null default 'open' check(status in ('open','resolved')),reply text,created_at timestamptz not null default now());
+grant select on public.support_tickets to authenticated; grant insert(user_id,subject,body) on public.support_tickets to authenticated; grant update(status,reply) on public.support_tickets to authenticated; grant all on public.support_tickets to service_role;
+alter table public.support_tickets enable row level security;
+create policy support_read on public.support_tickets for select to authenticated using(user_id=auth.uid() or public.has_role(auth.uid(),'admin'));
+create policy support_create on public.support_tickets for insert to authenticated with check(user_id=auth.uid() and status='open' and reply is null);
+create policy support_reply on public.support_tickets for update to authenticated using(public.has_role(auth.uid(),'admin'));
+insert into public.site_settings(id) values(1); insert into public.payment_settings(id) values(1);
+insert into public.listings(slug,seller_name,title,category,sale_type,price,monthly_revenue,monthly_profit,monthly_traffic,age_years,summary,description,verified,featured,status,ends_at,created_at) values
+('trailgear-shop','Hamza R.','TrailGear — Outdoor equipment store','ecommerce','fixed',148000,21400,4900,61000,5,'Shopify store with 3 private-label products and repeat buyers.','Established outdoor gear brand with a loyal email list of 18k subscribers, supplier contracts transferable, and a lean 2-person operation.','{Domain,Analytics,Revenue}',true,'approved',null,'2026-10-28'),
+('invoicely-saas','Sara K.','Invoicely — Invoicing SaaS for freelancers','saas','auction',92000,6800,5300,14000,3,'Profitable micro-SaaS, 410 paying customers, low churn.','Next.js + Postgres codebase, fully documented. Churn under 3% monthly. Seller offers 30 days of handover support.','{Domain,Analytics}',true,'approved','2026-11-06','2026-10-30'),
+('cryptobrief-blog','Daniel M.','CryptoBrief — Crypto news blog','content','fixed',36500,1900,1650,120000,4,'Ad + affiliate monetized, 700+ articles, strong organic traffic.','Mostly evergreen content with steady Google traffic.','{Domain,Analytics}',true,'approved',null,'2026-10-25'),
+('pixeltools-domain','Ali N.','PixelTools.com — Premium domain','domain','auction',12500,0,0,900,12,'Two-word brandable .com, registered since 2014.','Clean history, ideal for a design tools startup.','{Domain}',false,'approved','2026-11-03','2026-10-29'),
+('fitplan-app','Mira T.','FitPlan — Workout planner app','app','fixed',54000,3200,2400,22000,2,'iOS + Android app with subscriptions and 4.6★ rating.','React Native codebase, 38k downloads, 1.2k active subscribers.','{Revenue}',false,'approved',null,'2026-10-22'),
+('petnest-store','Omar F.','PetNest — Pet supplies dropshipping','ecommerce','fixed',28000,9200,1500,31000,2,'Dropshipping store with US suppliers, fast shipping.','Automated fulfilment, TikTok ad playbooks included.','{Domain}',false,'in_progress',null,'2026-10-12'),
+('devjobs-board','Lena P.','DevJobs — Remote developer job board','website','fixed',67000,4100,3600,48000,6,'Niche job board with paid postings and a 25k newsletter.','Employers pay per post; recurring clients make up 60% of revenue.','{Domain,Analytics,Revenue}',false,'approved',null,'2026-10-20'),
+('recipehub-site','Aisha B.','RecipeHub — Recipe content site','content','fixed',19000,950,880,75000,3,'Display-ad monetized recipe site, Pinterest traffic.','Sold through ClicksSpot.','{Analytics}',false,'sold',null,'2026-09-30');

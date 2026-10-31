@@ -1,0 +1,10 @@
+{"source":"Code archive emerald-admin-dashboard-main.zip (ClicksSpot marketplace)","capabilities":[
+{"capability":"Application code, pages, assets","source":"ZIP","outcome":"migrate","status":"verified","next_action":"Build, typecheck, 18 tests, marketplace page verified"},
+{"capability":"Database schema, functions, sample listings","source":"drizzle/migrations SQL","outcome":"migrate","status":"verified","next_action":"Applied; 8 sample listings load"},
+{"capability":"Storage buckets listing-images, deal-evidence","source":"code","outcome":"migrate","status":"implemented_unverified","next_action":"Test an upload after sign-in"},
+{"capability":"Auth (email + Google)","source":"code","outcome":"migrate","status":"implemented_unverified","next_action":"Owner signs up; grant admin role"},
+{"capability":"Existing records","source":"No export","outcome":"migrate","status":"pending","next_action":"Request CSV/JSON exports"},
+{"capability":"Auth identities","source":"No user export","outcome":"migrate","status":"pending","next_action":"Request users export (id, email)"},
+{"capability":"File bytes","source":"No export","outcome":"migrate","status":"pending","next_action":"Request uploaded files"},
+{"capability":"Manual payments (Binance/USDT/JazzCash/Easypaisa/bank/Raast)","source":"Manual workflow","outcome":"preserve","status":"implemented_unverified","next_action":"Owner enters receiving details in admin"},
+{"capability":"Webhooks/schedules","source":"none detected","outcome":"preserve","status":"not_detected","next_action":"none"}]}
