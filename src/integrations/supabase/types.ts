@@ -511,6 +511,58 @@ export type Database = {
           },
         ]
       }
+      seller_reviews: {
+        Row: {
+          body: string
+          created_at: string
+          deal_id: string
+          id: string
+          rating: number
+          reviewer_id: string
+          seller_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          deal_id: string
+          id?: string
+          rating: number
+          reviewer_id: string
+          seller_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          deal_id?: string
+          id?: string
+          rating?: number
+          reviewer_id?: string
+          seller_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_reviews_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: true
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_reviews_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_settings: {
         Row: {
           commission_rate: number
@@ -626,6 +678,40 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auction_summary: {
+        Args: { _listing: string }
+        Returns: {
+          bid_count: number
+          highest_bid: number
+        }[]
+      }
+      buy_now: { Args: { _listing: string }; Returns: string }
+      deal_action: {
+        Args: {
+          _action: string
+          _deal: string
+          _text1?: string
+          _text2?: string
+        }
+        Returns: undefined
+      }
+      deal_payment_settings: {
+        Args: { _deal: string }
+        Returns: {
+          binance_pay_id: string
+          id: number
+          updated_at: string
+          usdt_bep20_address: string
+          usdt_trc20_address: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payment_settings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      finalize_auction: { Args: { _listing: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -633,6 +719,51 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_deal: { Args: { _body: string; _deal: string }; Returns: undefined }
+      make_offer: {
+        Args: { _amount: number; _listing: string; _message: string }
+        Returns: string
+      }
+      moderate_listing: {
+        Args: {
+          _featured: boolean
+          _listing: string
+          _note: string
+          _status: Database["public"]["Enums"]["listing_status"]
+          _verified: string[]
+        }
+        Returns: undefined
+      }
+      open_deal: {
+        Args: {
+          _amount: number
+          _buyer: string
+          _listing: string
+          _offer: string
+        }
+        Returns: string
+      }
+      place_bid: {
+        Args: { _amount: number; _listing: string }
+        Returns: string
+      }
+      respond_offer: {
+        Args: { _accept: boolean; _offer: string }
+        Returns: string
+      }
+      seller_summary: {
+        Args: { _seller: string }
+        Returns: {
+          deals: number
+          rating: number
+          reviews: number
+        }[]
+      }
+      update_ownership: {
+        Args: { _evidence: string; _listing: string; _method: string }
+        Returns: undefined
+      }
+      withdraw_offer: { Args: { _offer: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
