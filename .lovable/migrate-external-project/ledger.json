@@ -1,0 +1,8 @@
+{"source":"Code archive emerald-admin-dashboard-main.zip (ClicksSpot marketplace)","capabilities":[
+{"capability":"Application code, pages, assets","source":"ZIP","outcome":"migrate","status":"in_progress","next_action":"Copy source"},
+{"capability":"Database schema + storage buckets","source":"drizzle/migrations SQL","outcome":"migrate","status":"pending","next_action":"Apply to Lovable Cloud"},
+{"capability":"Existing records","source":"No export","outcome":"migrate","status":"pending","next_action":"Request CSV/JSON exports"},
+{"capability":"Auth identities","source":"No user export","outcome":"migrate","status":"pending","next_action":"Request users export"},
+{"capability":"File bytes","source":"No export","outcome":"migrate","status":"pending","next_action":"Request file export"},
+{"capability":"Manual Binance/local payments","source":"Manual workflow","outcome":"preserve","status":"pending","next_action":"Copied with code"},
+{"capability":"Webhooks/schedules","source":"none detected","outcome":"preserve","status":"not_detected","next_action":"none"}]}
