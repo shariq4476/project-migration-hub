@@ -294,6 +294,7 @@ const commandInput = z.discriminatedUnion("kind", [
     kind: z.literal("profile"),
     name: z.string().trim().min(2).max(100),
     bio: z.string().max(1000),
+    country: z.string().trim().max(60).optional(),
     method: z.enum(paymentMethodIds),
     account: z.string().trim().min(3).max(200),
   }),
@@ -362,6 +363,7 @@ export const marketplaceCommand = createServerFn({ method: "POST" })
             .update({
               display_name: data.name,
               bio: data.bio,
+              ...(data.country !== undefined ? { country: data.country || null } : {}),
               updated_at: new Date().toISOString(),
             })
             .eq("id", uid),
