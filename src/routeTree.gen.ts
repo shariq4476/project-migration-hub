@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BuyerGuideRouteImport } from './routes/buyer-guide'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as FeesRouteImport } from './routes/fees'
@@ -22,7 +23,9 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RefundRouteImport } from './routes/refund'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SellRouteImport } from './routes/sell'
+import { Route as SellerGuideRouteImport } from './routes/seller-guide'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TrustSafetyRouteImport } from './routes/trust-safety'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
@@ -46,6 +49,11 @@ const AboutRoute = AboutRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuyerGuideRoute = BuyerGuideRouteImport.update({
+  id: '/buyer-guide',
+  path: '/buyer-guide',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -93,9 +101,19 @@ const SellRoute = SellRouteImport.update({
   path: '/sell',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SellerGuideRoute = SellerGuideRouteImport.update({
+  id: '/seller-guide',
+  path: '/seller-guide',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrustSafetyRoute = TrustSafetyRouteImport.update({
+  id: '/trust-safety',
+  path: '/trust-safety',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -129,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/buyer-guide': typeof BuyerGuideRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/fees': typeof FeesRoute
@@ -138,7 +157,9 @@ export interface FileRoutesByFullPath {
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sell': typeof SellRoute
+  '/seller-guide': typeof SellerGuideRoute
   '/terms': typeof TermsRoute
+  '/trust-safety': typeof TrustSafetyRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/listing/$id': typeof ListingIdRoute
@@ -149,6 +170,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/buyer-guide': typeof BuyerGuideRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/fees': typeof FeesRoute
@@ -158,7 +180,9 @@ export interface FileRoutesByTo {
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sell': typeof SellRoute
+  '/seller-guide': typeof SellerGuideRoute
   '/terms': typeof TermsRoute
+  '/trust-safety': typeof TrustSafetyRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/listing/$id': typeof ListingIdRoute
@@ -171,6 +195,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/buyer-guide': typeof BuyerGuideRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/fees': typeof FeesRoute
@@ -180,7 +205,9 @@ export interface FileRoutesById {
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sell': typeof SellRoute
+  '/seller-guide': typeof SellerGuideRoute
   '/terms': typeof TermsRoute
+  '/trust-safety': typeof TrustSafetyRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/listing/$id': typeof ListingIdRoute
@@ -193,6 +220,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/buyer-guide'
     | '/contact'
     | '/faq'
     | '/fees'
@@ -202,7 +230,9 @@ export interface FileRouteTypes {
     | '/refund'
     | '/reset-password'
     | '/sell'
+    | '/seller-guide'
     | '/terms'
+    | '/trust-safety'
     | '/admin'
     | '/dashboard'
     | '/listing/$id'
@@ -213,6 +243,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/buyer-guide'
     | '/contact'
     | '/faq'
     | '/fees'
@@ -222,7 +253,9 @@ export interface FileRouteTypes {
     | '/refund'
     | '/reset-password'
     | '/sell'
+    | '/seller-guide'
     | '/terms'
+    | '/trust-safety'
     | '/admin'
     | '/dashboard'
     | '/listing/$id'
@@ -234,6 +267,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/about'
     | '/auth'
+    | '/buyer-guide'
     | '/contact'
     | '/faq'
     | '/fees'
@@ -243,7 +277,9 @@ export interface FileRouteTypes {
     | '/refund'
     | '/reset-password'
     | '/sell'
+    | '/seller-guide'
     | '/terms'
+    | '/trust-safety'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/listing/$id'
@@ -256,6 +292,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
+  BuyerGuideRoute: typeof BuyerGuideRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
   FeesRoute: typeof FeesRoute
@@ -265,7 +302,9 @@ export interface RootRouteChildren {
   RefundRoute: typeof RefundRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SellRoute: typeof SellRoute
+  SellerGuideRoute: typeof SellerGuideRoute
   TermsRoute: typeof TermsRoute
+  TrustSafetyRoute: typeof TrustSafetyRoute
   ListingIdRoute: typeof ListingIdRoute
 }
 
@@ -297,6 +336,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/buyer-guide': {
+      id: '/buyer-guide'
+      path: '/buyer-guide'
+      fullPath: '/buyer-guide'
+      preLoaderRoute: typeof BuyerGuideRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -362,11 +408,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SellRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/seller-guide': {
+      id: '/seller-guide'
+      path: '/seller-guide'
+      fullPath: '/seller-guide'
+      preLoaderRoute: typeof SellerGuideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trust-safety': {
+      id: '/trust-safety'
+      path: '/trust-safety'
+      fullPath: '/trust-safety'
+      preLoaderRoute: typeof TrustSafetyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -429,6 +489,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
+  BuyerGuideRoute: BuyerGuideRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
   FeesRoute: FeesRoute,
@@ -438,7 +499,9 @@ const rootRouteChildren: RootRouteChildren = {
   RefundRoute: RefundRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SellRoute: SellRoute,
+  SellerGuideRoute: SellerGuideRoute,
   TermsRoute: TermsRoute,
+  TrustSafetyRoute: TrustSafetyRoute,
   ListingIdRoute: ListingIdRoute,
 }
 export const routeTree = rootRouteImport

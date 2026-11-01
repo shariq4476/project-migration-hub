@@ -3,26 +3,26 @@ import { SiteLayout, PageHeader } from "@/components/site/SiteLayout";
 import { SellForm } from "@/components/site/SellForm";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/use-session";
-import { pageMeta } from "@/lib/seo";
+import { useSiteContent } from "@/hooks/use-site-content";
+import { managedHead, siteContentQuery } from "@/components/site/ManagedPage";
 import { useAccountType } from "@/hooks/use-account-type";
 export const Route = createFileRoute("/sell")({
-  head: () =>
-    pageMeta(
-      "Sell your asset",
-      "List your AdSense blog, affiliate site or online store for free. Pay 10% only on completed sales.",
-    ),
+  loader: ({ context }) => context.queryClient.ensureQueryData(siteContentQuery),
+  head: ({ loaderData }) => managedHead("sell", loaderData),
   component: Sell,
 });
 function Sell() {
+  const c = useSiteContent();
   const { user, ready } = useSession();
   const account = useAccountType();
   return (
     <SiteLayout>
       <PageHeader
-        title="Sell your asset"
-        subtitle="Free to list. 10% only when your deal completes."
+        title={c.pages.sell.title}
+        subtitle={c.pages.sell.subtitle}
       />
       <div className="workspace">
+        <div className="mb-12 grid gap-6 border-b pb-10 md:grid-cols-3">{c.pages.sell.sections.map((item, i) => <section key={i}><p className="mb-3 text-sm font-semibold text-primary">0{i + 1}</p><h2 className="text-lg">{item.title}</h2><p className="mt-3 text-sm text-muted-foreground">{item.text}</p></section>)}</div>
         {!ready ? (
           <p>Loading your account…</p>
         ) : user && account.loading ? (

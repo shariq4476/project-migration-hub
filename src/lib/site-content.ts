@@ -1,3 +1,5 @@
+import { defaultPages, defaultLabels, defaultHomeSteps, type EditablePage, type PageId } from "./page-content";
+
 export const fontOptions = {
   jakarta: { label: "Plus Jakarta Sans (modern, clean)", sans: "Plus Jakarta Sans", display: "Plus Jakarta Sans" },
   outfit: { label: "Outfit (friendly, rounded)", sans: "Outfit", display: "Outfit" },
@@ -75,6 +77,10 @@ export function themeVars(c: Colors, fontScale: number, radius: number): Record<
   };
 }
 export interface SiteContent {
+  pages: Record<PageId, EditablePage>;
+  labels: typeof defaultLabels;
+  homeSteps: Pair[];
+  contactEmail: string;
   font: FontId;
   colors: Colors;
   fontScale: number;
@@ -98,6 +104,10 @@ export interface SiteContent {
 }
 
 export const defaultContent: SiteContent = {
+  pages: defaultPages,
+  labels: defaultLabels,
+  homeSteps: defaultHomeSteps,
+  contactEmail: "",
   font: "jakarta",
   colors: defaultColors,
   fontScale: 16.5,
@@ -147,7 +157,26 @@ export function mergeContent(saved: unknown): SiteContent {
   const s = saved as Record<string, unknown>;
   for (const key of Object.keys(defaultContent) as (keyof SiteContent)[]) {
     const v = s[key];
-    if (key === "colors") {
+    if (key === "pages") {
+      out.pages = structuredClone(defaultPages);
+      if (v && typeof v === "object") {
+        for (const id of Object.keys(defaultPages) as PageId[]) {
+          const candidate = (v as Record<string, unknown>)[id];
+          if (!candidate || typeof candidate !== "object") continue;
+          const fields = candidate as Record<string, unknown>;
+          for (const field of ["title", "subtitle", "eyebrow", "seoTitle", "seoDescription"] as const) {
+            if (typeof fields[field] === "string" && fields[field].trim()) out.pages[id][field] = fields[field];
+          }
+          if (isPairs(fields["sections"])) out.pages[id].sections = fields["sections"];
+        }
+      }
+    } else if (key === "labels") {
+      out.labels = { ...defaultLabels };
+      if (v && typeof v === "object") for (const id of Object.keys(defaultLabels) as (keyof typeof defaultLabels)[]) {
+        const label = (v as Record<string, unknown>)[id];
+        if (typeof label === "string" && label.trim()) out.labels[id] = label;
+      }
+    } else if (key === "colors") {
       const saved = (v && typeof v === "object" ? v : {}) as Record<string, unknown>;
       out.colors = { ...defaultColors };
       for (const id of Object.keys(defaultColors) as ColorId[]) {
@@ -160,8 +189,8 @@ export function mergeContent(saved: unknown): SiteContent {
       if (typeof v === "number" && v >= 0 && v <= 1.5) out.radius = v;
     } else if (key === "font") {
       if (typeof v === "string" && v in fontOptions) out.font = v as FontId;
-    } else if (key === "stats" || key === "features" || key === "testimonials") {
-      if (isPairs(v) && v.length) out[key] = v;
+    } else if (key === "stats" || key === "features" || key === "testimonials" || key === "homeSteps") {
+      if (isPairs(v)) out[key] = v;
     } else if (typeof v === "string" && (v.trim() || key.startsWith("contact"))) {
       (out as unknown as Record<string, string>)[key] = v;
     }

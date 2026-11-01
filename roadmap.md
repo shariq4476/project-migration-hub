@@ -1,5 +1,9 @@
 # ClicksSpot completion
 
+- [ ] Expand public pages and add buyer, seller and trust guides.
+- [ ] Refresh shared header, footer and current public page presentation.
+- [ ] Add admin editing for page sections, navigation labels and public page metadata; verify saving and public readback.
+
 - [x] Add header account switch and synchronize buyer/seller settings; verified signed-in switching, reload persistence and smaller screens.
 
 - [x] Import all original pages and design without source credentials.
