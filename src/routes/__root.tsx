@@ -13,7 +13,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { SessionContext } from "@/hooks/use-session";
-import { fontOptions, fontStylesheet } from "@/lib/site-content";
+import { fontOptions, fontStylesheet, themeVars } from "@/lib/site-content";
 import { useSiteContent } from "@/hooks/use-site-content";
 
 import appCss from "../styles.css?url";
@@ -159,12 +159,13 @@ function RootComponent() {
 }
 
 function FontApplier() {
-  const { font } = useSiteContent();
+  const { font, colors, fontScale, radius } = useSiteContent();
   useEffect(() => {
     const f = fontOptions[font];
     const root = document.documentElement.style;
+    for (const [k, v] of Object.entries(themeVars(colors, fontScale, radius))) root.setProperty(k, v);
     root.setProperty("--app-font-sans", `"${f.sans}", ui-sans-serif, system-ui, sans-serif`);
     root.setProperty("--app-font-display", `"${f.display}", ui-sans-serif, system-ui, sans-serif`);
-  }, [font]);
+  }, [font, colors, fontScale, radius]);
   return null;
 }
