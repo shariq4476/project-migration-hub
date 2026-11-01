@@ -22,13 +22,14 @@ export const setActiveCurrency = (next: Active) => {
   active = next.rate > 0 ? next : USD;
 };
 
-export function formatMoney(usdAmount: number, cur: Active = USD) {
+export function formatMoney(usdAmount: number, cur: Active = USD, short = false) {
   const value = usdAmount * cur.rate;
   try {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: cur.code,
-      maximumFractionDigits: 0,
+      maximumFractionDigits: short ? 1 : 0,
+      ...(short ? { notation: "compact" as const } : {}),
     }).format(value);
   } catch {
     return `${cur.code} ${Math.round(value).toLocaleString("en-US")}`;
