@@ -9,6 +9,7 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 ## ClicksSpot architecture
+- Store editable public page sections, navigation labels and page metadata in the existing site-content document; public React Query loaders share it with the admin editor so saved content and SSR search previews stay consistent. Transaction controls and fee calculations remain application-owned.
 - Use the shared account-type query for header, selling and dashboard presentation; confirmed profile updates synchronize its cache and dashboard data so account controls cannot disagree.
 - Preserve this project's pinned TanStack versions and generated Cloud integration; imported configuration must not replace them.
 - Public marketplace reads use server publishable clients with React Query loaders; private actions use authenticated server functions and RLS.

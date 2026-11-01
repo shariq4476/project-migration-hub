@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField } from "@/components/site/FormField";
 import { useSiteContent, siteContentKey } from "@/hooks/use-site-content";
+import { defaultPages, type PageId, type LabelId } from "@/lib/page-content";
 import {
   colorFields,
   type ColorId,
@@ -34,11 +35,13 @@ const textFields: [keyof SiteContent, string, boolean?][] = [
   ["footerNote", "Footer: copyright line"],
   ["contactPhone", "Contact phone (shown in footer)"],
   ["contactWhatsapp", "WhatsApp number, e.g. +92 300 1234567"],
+  ["contactEmail", "Support email address"],
 ];
-const listFields: [("stats" | "features" | "testimonials"), string][] = [
+const listFields: [("stats" | "features" | "testimonials" | "homeSteps"), string][] = [
   ["stats", "Home: number band (one per line: number | label)"],
   ["features", "Home: why choose us (one per line: title | description)"],
   ["testimonials", "Home: testimonials (one per line: name, city | quote)"],
+  ["homeSteps", "Home: process steps (one per line: title | description)"],
 ];
 
 export function SiteContentEditor() {
@@ -49,6 +52,10 @@ export function SiteContentEditor() {
   const [colors, setColors] = useState<Colors>(content.colors);
   const [fontScale, setFontScale] = useState(content.fontScale);
   const [radius, setRadius] = useState(content.radius);
+  const [pages, setPages] = useState(content.pages);
+  const [labels, setLabels] = useState(content.labels);
+  const [section, setSection] = useState<"appearance" | "home" | "pages" | "navigation">("appearance");
+  const [pageId, setPageId] = useState<PageId>("about");
 
   async function save(next: SiteContent) {
     setBusy(true);
@@ -62,7 +69,9 @@ export function SiteContentEditor() {
       toast.error(error?.message ?? "Could not save site content.");
       return;
     }
+    qc.setQueryData(siteContentKey, next);
     await qc.invalidateQueries({ queryKey: siteContentKey });
+    await qc.invalidateQueries({ queryKey: ["admin"] });
     toast.success("Site updated");
   }
 
@@ -73,18 +82,19 @@ export function SiteContentEditor() {
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
-        const next: SiteContent = { ...content, font, colors, fontScale, radius };
-        for (const [k] of textFields) (next as unknown as Record<string, string>)[k] = String(fd.get(k) ?? "");
-        for (const [k] of listFields) next[k] = textToPairs(String(fd.get(k) ?? ""));
+        const next: SiteContent = { ...content, font, colors, fontScale, radius, pages, labels };
+        for (const [k] of textFields) if (fd.has(k)) (next as unknown as Record<string, string>)[k] = String(fd.get(k) ?? "");
+        for (const [k] of listFields) if (fd.has(k)) next[k] = textToPairs(String(fd.get(k) ?? ""));
         void save(next);
       }}
     >
       <div>
-        <h2 className="text-xl">Site content & look</h2>
-        <p className="text-sm text-muted-foreground">
-          Change the text, font and contact details shown across the site. Empty fields use the default text.
-        </p>
+        <h2 className="text-xl">Website management</h2>
       </div>
+      <div className="workspace-tabs" role="tablist" aria-label="Website settings">
+        {(["appearance", "home", "pages", "navigation"] as const).map(id => <Button key={id} type="button" role="tab" aria-selected={section === id} variant={section === id ? "default" : "ghost"} onClick={() => setSection(id)}>{({ appearance: "Appearance", home: "Home & contact", pages: "All pages", navigation: "Header & footer" })[id]}</Button>)}
+      </div>
+      <div hidden={section !== "appearance"} className="space-y-6">
       <FormField label="Font">
         <select className="native-select" aria-label="Font" value={font} onChange={(e) => setFont(e.target.value as FontId)}>
           {Object.entries(fontOptions).map(([id, f]) => (
@@ -123,6 +133,8 @@ export function SiteContentEditor() {
           </span>
         </div>
       </div>
+      </div>
+      <div hidden={section !== "home"} className="space-y-5">
       {textFields.map(([k, label, long]) => (
         <FormField key={k} label={label}>
           {long ? (
@@ -137,7 +149,17 @@ export function SiteContentEditor() {
           <Textarea name={k} rows={6} defaultValue={pairsToText(content[k])} />
         </FormField>
       ))}
-      <div className="flex gap-3">
+      </div>
+      <div hidden={section !== "pages"} className="space-y-5">
+        <FormField label="Page"><select className="native-select" aria-label="Page" value={pageId} onChange={e => setPageId(e.target.value as PageId)}>{(Object.keys(defaultPages) as PageId[]).map(id => <option key={id} value={id}>{id === "home" ? "Home — search preview" : defaultPages[id].title}</option>)}</select></FormField>
+        {(["title", "subtitle", "eyebrow", "seoTitle", "seoDescription"] as const).map(field => <FormField key={field} label={({ title: "Page title", subtitle: "Introduction", eyebrow: "Category label", seoTitle: "Search title", seoDescription: "Search description" })[field]}><Input aria-label={field} value={pages[pageId][field]} onChange={e => setPages({ ...pages, [pageId]: { ...pages[pageId], [field]: e.target.value } })}/></FormField>)}
+        {pages[pageId].sections.map((item, i) => <fieldset key={`${pageId}-${i}`} className="space-y-3 border-t pt-5"><legend className="text-sm font-semibold">Section {i + 1}</legend><Input aria-label={`Section ${i + 1} title`} value={item.title} onChange={e => setPages({ ...pages, [pageId]: { ...pages[pageId], sections: pages[pageId].sections.map((x, j) => j === i ? { ...x, title: e.target.value } : x) } })}/><Textarea aria-label={`Section ${i + 1} content`} rows={5} value={item.text} onChange={e => setPages({ ...pages, [pageId]: { ...pages[pageId], sections: pages[pageId].sections.map((x, j) => j === i ? { ...x, text: e.target.value } : x) } })}/><div className="flex gap-2"><Button type="button" variant="outline" disabled={i === 0} onClick={() => { const items = [...pages[pageId].sections]; [items[i - 1], items[i]] = [items[i], items[i - 1]]; setPages({ ...pages, [pageId]: { ...pages[pageId], sections: items } }); }}>Move up</Button><Button type="button" variant="ghost" onClick={() => setPages({ ...pages, [pageId]: { ...pages[pageId], sections: pages[pageId].sections.filter((_, j) => i !== j) } })}>Remove section</Button></div></fieldset>)}
+        <Button type="button" variant="outline" onClick={() => setPages({ ...pages, [pageId]: { ...pages[pageId], sections: [...pages[pageId].sections, { title: "", text: "" }] } })}>Add section</Button>
+      </div>
+      <div hidden={section !== "navigation"} className="grid gap-5 sm:grid-cols-2">
+        {(Object.keys(labels) as LabelId[]).map(id => <FormField key={id} label={id.replace(/([A-Z])/g, " $1").replace(/^./, x => x.toUpperCase())}><Input aria-label={`Label ${id}`} value={labels[id]} onChange={e => setLabels({ ...labels, [id]: e.target.value })}/></FormField>)}
+      </div>
+      <div className="sticky bottom-0 flex gap-3 border-t bg-background py-4">
         <Button disabled={busy}>Save site content</Button>
         <Button
           type="button"
