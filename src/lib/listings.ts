@@ -49,8 +49,8 @@ export interface Listing {
     reviews: number;
     deals: number;
     verified: boolean;
-    memberSince?: string;
-    country?: string;
+    memberSince?: string | undefined;
+    country?: string | undefined;
     idVerified?: boolean;
     phoneVerified?: boolean;
     paymentVerified?: boolean;
