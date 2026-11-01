@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Search, ShieldCheck, Handshake, Wallet, BadgeCheck, Lock } from "lucide-react";
+import { Search, ShieldCheck, Handshake, Wallet, BadgeCheck, Lock, Quote, MessagesSquare, LifeBuoy, UserCheck, ArrowRight } from "lucide-react";
+import { useSiteContent } from "@/hooks/use-site-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,7 +12,7 @@ import {
 } from "@/components/ui/accordion";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { ListingCard } from "@/components/site/ListingCard";
-import { categories, listings } from "@/lib/listings";
+import { categories } from "@/lib/listings";
 import { faqs } from "@/lib/content";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { marketplaceQuery } from "@/lib/marketplace.queries";
@@ -43,6 +44,7 @@ function Home() {
   const { data: listings } = useSuspenseQuery(marketplaceQuery);
   const [q, setQ] = useState("");
   const navigate = useNavigate();
+  const c = useSiteContent();
   const featured = listings.filter((l) => l.featured && l.status === "active");
   const recent = [...listings]
     .filter((l) => l.status === "active")
@@ -60,17 +62,15 @@ function Home() {
           className="marketplace-cover"
         />
         <div className="cover-shade" />
-        <div className="relative mx-auto max-w-7xl px-4 py-16 md:py-20">
+        <div className="relative mx-auto max-w-7xl px-4 py-20 md:py-28">
           <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-navy-2 px-3 py-1 text-xs text-navy-muted">
-            <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Pakistan & South Asia's website marketplace
+            <ShieldCheck className="h-3.5 w-3.5 text-primary" /> {c.heroBadge}
           </p>
-          <h1 className="max-w-xl text-4xl font-bold leading-tight md:text-5xl">
-            ClicksSpot{" "}
-            <span className="block text-primary">Buy and sell websites safely.</span>
+          <h1 className="max-w-2xl text-4xl font-extrabold leading-tight text-navy-foreground md:text-6xl">
+            {c.heroTitle}{" "}
+            <span className="block text-primary">{c.heroHighlight}</span>
           </h1>
-          <p className="mt-5 max-w-lg text-lg text-navy-muted">
-            AdSense blogs, affiliate sites and online stores with verified traffic — and escrow that holds payment until the buyer confirms. No more scams in Facebook and WhatsApp groups.
-          </p>
+          <p className="mt-6 max-w-xl text-lg text-navy-muted md:text-xl">{c.heroSubtitle}</p>
           <form
             className="mt-8 flex max-w-xl gap-2"
             onSubmit={(e) => {
@@ -107,9 +107,20 @@ function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16">
+      <section className="border-b bg-card">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 py-10 md:grid-cols-4">
+          {c.stats.map((s) => (
+            <div key={s.text} className="text-center">
+              <p className="font-display text-3xl font-extrabold text-primary md:text-4xl">{s.title}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{s.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-20">
         <div className="mb-6 flex items-end justify-between">
-          <h2 className="text-2xl font-bold">Featured listings</h2>
+          <h2 className="text-3xl font-bold">Featured listings</h2>
           <Link
             to="/marketplace"
             className="text-sm font-medium text-accent-foreground hover:text-primary"
@@ -129,8 +140,9 @@ function Home() {
       </section>
 
       <section className="border-y bg-card">
-        <div className="mx-auto max-w-7xl px-4 py-16">
-          <h2 className="text-2xl font-bold">How it works</h2>
+        <div className="mx-auto max-w-7xl px-4 py-20">
+          <h2 className="text-3xl font-bold">How it works</h2>
+          <p className="mt-2 max-w-2xl text-muted-foreground">Three simple steps, with your money protected the whole way.</p>
           <div className="mt-8 grid gap-6 md:grid-cols-3">
             {[
               {
@@ -174,8 +186,44 @@ function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16">
-        <h2 className="mb-6 text-2xl font-bold">Recently listed</h2>
+      <section className="mx-auto max-w-7xl px-4 py-20">
+        <h2 className="text-3xl font-bold">Browse by category</h2>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {categories.map((cat) => {
+            const count = listings.filter((l) => l.category === cat.id && l.status === "active").length;
+            return (
+              <Link key={cat.id} to="/marketplace" search={{ category: cat.id }} className="group flex items-center justify-between rounded-xl border bg-card p-5 shadow-card transition hover:border-primary">
+                <div>
+                  <p className="font-semibold group-hover:text-primary">{cat.label}</p>
+                  <p className="text-sm text-muted-foreground">{count} live listing{count === 1 ? "" : "s"}</p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="border-y bg-card">
+        <div className="mx-auto max-w-7xl px-4 py-20">
+          <h2 className="text-3xl font-bold">Why buyers and sellers choose {c.siteName}</h2>
+          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {c.features.map((f, i) => {
+              const Icon = [BadgeCheck, ShieldCheck, Wallet, MessagesSquare, UserCheck, LifeBuoy][i % 6] ?? BadgeCheck;
+              return (
+                <div key={f.title} className="rounded-xl border bg-background p-6">
+                  <span className="grid h-11 w-11 place-items-center rounded-lg bg-accent"><Icon className="h-5 w-5 text-primary" /></span>
+                  <h3 className="mt-4 text-lg font-semibold">{f.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{f.text}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-20">
+        <h2 className="mb-8 text-3xl font-bold">Recently listed</h2>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {recent.map((l) => (
             <ListingCard key={l.id} l={l} />
@@ -183,8 +231,30 @@ function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-3xl px-4 pb-20">
-        <h2 className="mb-4 text-2xl font-bold">Frequently asked</h2>
+      <section className="bg-hero text-navy-foreground">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-20 lg:grid-cols-2 lg:items-center">
+          <div>
+            <h2 className="text-3xl font-bold text-navy-foreground md:text-4xl">{c.sellerTitle}</h2>
+            <p className="mt-4 text-lg text-navy-muted">{c.sellerText}</p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild size="lg"><Link to="/sell">List your website</Link></Button>
+              <Button asChild size="lg" variant="outline"><Link to="/fees">See fees</Link></Button>
+            </div>
+          </div>
+          <div className="grid gap-4">
+            {c.testimonials.map((t) => (
+              <figure key={t.title} className="rounded-xl border border-navy-2 p-5">
+                <Quote className="h-5 w-5 text-primary" />
+                <blockquote className="mt-2 text-navy-foreground">{t.text}</blockquote>
+                <figcaption className="mt-3 text-sm text-navy-muted">— {t.title}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-3xl px-4 py-20">
+        <h2 className="mb-6 text-3xl font-bold">Frequently asked</h2>
         <Accordion type="single" collapsible>
           {faqs.slice(0, 4).map((f) => (
             <AccordionItem key={f.q} value={f.q}>
@@ -193,6 +263,14 @@ function Home() {
             </AccordionItem>
           ))}
         </Accordion>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-20">
+        <div className="rounded-2xl border bg-accent p-10 text-center md:p-14">
+          <h2 className="text-3xl font-bold">{c.ctaTitle}</h2>
+          <p className="mx-auto mt-3 max-w-xl text-muted-foreground">{c.ctaText}</p>
+          <Button asChild size="lg" className="mt-8"><Link to="/marketplace">Browse listings</Link></Button>
+        </div>
       </section>
     </SiteLayout>
   );
