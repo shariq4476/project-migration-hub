@@ -91,6 +91,7 @@ function ListingPage() {
     }
   }
   const similar = listings.filter((x) => x.category === l.category && x.id !== l.id).slice(0, 3);
+  const others = l.sellerId ? listings.filter((x) => x.sellerId === l.sellerId && x.id !== l.id) : [];
   return (
     <SiteLayout>
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 lg:grid-cols-3">
