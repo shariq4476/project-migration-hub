@@ -105,6 +105,10 @@ export function commissionFor(price: number) {
   return Math.round(price * COMMISSION_RATE * 100) / 100;
 }
 
-export const usd = (n: number) =>
+import { formatMoney, activeCurrency } from "@/lib/currency";
+/** Price in the visitor's chosen currency (USD by default). */
+export const usd = (n: number) => formatMoney(n, activeCurrency());
+/** Exact US dollar amount — for payments, payouts and admin records. */
+export const usdExact = (n: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 export const compact = (n: number) => new Intl.NumberFormat("en-US", { notation: "compact" }).format(n);

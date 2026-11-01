@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { saveListing } from "@/lib/marketplace.functions";
-import { categories, commissionFor, usd } from "@/lib/listings";
+import { categories, commissionFor, usdExact } from "@/lib/listings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -243,8 +243,8 @@ export function SellForm({ initial, review }: { initial?: Row; review?: Review |
               </FormField>
             )}
             <p className="text-sm text-muted-foreground sm:col-span-2">
-              Commission: {usd(commissionFor(Number(fields.price) || 0))}. Seller receives{" "}
-              {usd((Number(fields.price) || 0) - commissionFor(Number(fields.price) || 0))} after
+              Commission: {usdExact(commissionFor(Number(fields.price) || 0))}. Seller receives{" "}
+              {usdExact((Number(fields.price) || 0) - commissionFor(Number(fields.price) || 0))} after
               completion.
             </p>
           </div>
@@ -318,7 +318,7 @@ export function SellForm({ initial, review }: { initial?: Row; review?: Review |
             <dl className="grid grid-cols-2 gap-4">
               <div>
                 <dt className="text-sm text-muted-foreground">Price</dt>
-                <dd>{usd(Number(fields.price) || 0)}</dd>
+                <dd>{usdExact(Number(fields.price) || 0)}</dd>
               </div>
               <div>
                 <dt className="text-sm text-muted-foreground">Sale type</dt>

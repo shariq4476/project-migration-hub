@@ -26,3 +26,24 @@ export const getUsdPkrRate = createServerFn({ method: "GET" }).handler(async ():
     return { rate: await fromOpenEr(), source: "daily", fetchedAt: new Date().toISOString() };
   }
 });
+
+export type FxTable = { rates: Record<string, number>; source: string; fetchedAt: string };
+
+/** Live USD-based exchange rates for every supported currency. */
+export const getUsdRates = createServerFn({ method: "GET" }).handler(async (): Promise<FxTable> => {
+  try {
+    const r = await fetch("https://api.coinbase.com/v2/exchange-rates?currency=USD");
+    if (!r.ok) throw new Error(`Coinbase ${r.status}`);
+    const j = (await r.json()) as { data?: { rates?: Record<string, string> } };
+    const rates = Object.fromEntries(
+      Object.entries(j.data?.rates ?? {}).map(([k, v]) => [k, Number(v)]).filter(([, v]) => Number(v) > 0),
+    ) as Record<string, number>;
+    if (!rates["PKR"]) throw new Error("No rates");
+    return { rates, source: "live", fetchedAt: new Date().toISOString() };
+  } catch {
+    const r = await fetch("https://open.er-api.com/v6/latest/USD");
+    if (!r.ok) throw new Error(`open.er-api ${r.status}`);
+    const j = (await r.json()) as { rates?: Record<string, number> };
+    return { rates: j.rates ?? {}, source: "daily", fetchedAt: new Date().toISOString() };
+  }
+});
