@@ -36,6 +36,13 @@
       "when": 1793499106610,
       "tag": "0004_seller_verification",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793499593428,
+      "tag": "0005_site_content",
+      "breakpoints": true
     }
   ]
 }

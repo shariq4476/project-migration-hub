@@ -19,7 +19,9 @@ import {
   Ban,
   RotateCcw,
   TrendingUp,
+  Palette,
 } from "lucide-react";
+import { SiteContentEditor } from "@/components/site/SiteContentEditor";
 import { adminQuery } from "@/lib/marketplace.queries";
 import { adminCommand } from "@/lib/marketplace.functions";
 import { SiteLayout } from "@/components/site/SiteLayout";
@@ -105,6 +107,7 @@ function Admin() {
     { id: "Reports", icon: Flag, count: openReports },
     { id: "Support", icon: LifeBuoy, count: openTickets },
     { id: "Activity", icon: History, count: 0 },
+    { id: "Site content", icon: Palette, count: 0 },
     { id: "Settings", icon: Settings, count: 0 },
   ];
   const f = filter.trim().toLowerCase();
@@ -709,6 +712,8 @@ function Admin() {
                   ))}
                 </ol>
               ))}
+
+            {tab === "Site content" && <SiteContentEditor />}
 
             {tab === "Settings" && (
               <div className="grid gap-10 xl:grid-cols-2">

@@ -7,6 +7,7 @@ import { useSession } from "@/hooks/use-session";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useAccountType } from "@/hooks/use-account-type";
+import { useSiteContent } from "@/hooks/use-site-content";
 
 const nav = [
   { to: "/marketplace", label: "Marketplace" },
@@ -16,12 +17,13 @@ const nav = [
 ] as const;
 
 export function Logo({ dark = false }: { dark?: boolean }) {
+  const { siteName } = useSiteContent();
   return (
     <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold">
       <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-        C
+        {siteName.charAt(0).toUpperCase()}
       </span>
-      <span className={dark ? "text-navy-foreground" : "text-foreground"}>ClicksSpot</span>
+      <span className={dark ? "text-navy-foreground" : "text-foreground"}>{siteName}</span>
     </Link>
   );
 }
@@ -31,6 +33,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
   const { user } = useSession();
   const account = useAccountType();
   const isSeller = account.type === "seller";
+  const content = useSiteContent();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   async function signOut() {
@@ -145,9 +148,13 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-4">
           <div className="space-y-3">
             <Logo dark />
-            <p className="text-sm">
-              The safe website marketplace for Pakistan & South Asia.
-            </p>
+            <p className="text-sm">{content.footerAbout}</p>
+            {content.contactPhone && <p className="text-sm">Phone: {content.contactPhone}</p>}
+            {content.contactWhatsapp && (
+              <a className="block text-sm hover:text-primary" href={`https://wa.me/${content.contactWhatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer">
+                WhatsApp: {content.contactWhatsapp}
+              </a>
+            )}
             <p className="flex items-center gap-2 text-xs">
               <ShieldCheck className="h-4 w-4 text-primary" /> Funds held until the buyer confirms
             </p>
@@ -179,7 +186,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           />
         </div>
         <div className="border-t border-navy-2 py-5 text-center text-xs">
-          © 2026 ClicksSpot. Pay with JazzCash, Easypaisa, Raast, bank transfer or USDT.
+          {content.footerNote}
         </div>
       </footer>
     </div>
@@ -206,9 +213,9 @@ function FooterCol({ title, links }: { title: string; links: [string, string][] 
 export function PageHeader({ title, subtitle }: { title: string; subtitle?: string | undefined }) {
   return (
     <section className="bg-hero text-navy-foreground">
-      <div className="mx-auto max-w-7xl px-4 py-14">
-        <h1 className="text-3xl font-bold md:text-4xl">{title}</h1>
-        {subtitle && <p className="mt-3 max-w-2xl text-navy-muted">{subtitle}</p>}
+      <div className="mx-auto max-w-7xl px-4 py-16 md:py-20">
+        <h1 className="text-4xl font-bold md:text-5xl">{title}</h1>
+        {subtitle && <p className="mt-4 max-w-2xl text-lg text-navy-muted">{subtitle}</p>}
       </div>
     </section>
   );

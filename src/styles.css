@@ -67,8 +67,8 @@
   --color-navy-2: var(--navy-2);
   --color-navy-foreground: var(--navy-foreground);
   --color-navy-muted: var(--navy-muted);
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "DM Serif Display", Georgia, ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--app-font-sans);
+  --font-display: var(--app-font-display);
   --shadow-card: var(--shadow-card);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -175,13 +175,22 @@
   h2,
   h3,
   h4 {
-    font-family: var(--font-display);
-    letter-spacing: 0;
-    font-weight: 400;
+    font-family: var(--app-font-display);
+    letter-spacing: -0.01em;
+    font-weight: 700;
+    line-height: 1.2;
     color: var(--heading);
   }
+  :root {
+    --app-font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+    --app-font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  }
+  html {
+    font-size: 16.5px;
+  }
   body {
-    font-family: var(--font-sans);
+    font-family: var(--app-font-sans);
+    line-height: 1.65;
   }
 }
 
@@ -208,7 +217,7 @@
   place-items: center;
   background: var(--accent);
   color: var(--accent-foreground);
-  font-family: var(--font-display);
+  font-family: var(--app-font-display);
   font-size: 3rem;
 }
 .workspace {
