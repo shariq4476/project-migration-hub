@@ -624,6 +624,7 @@ export type Database = {
         Row: {
           announcement: string
           commission_rate: number
+          content: Json
           id: number
           support_email: string
           updated_at: string
@@ -631,6 +632,7 @@ export type Database = {
         Insert: {
           announcement?: string
           commission_rate?: number
+          content?: Json
           id?: number
           support_email?: string
           updated_at?: string
@@ -638,6 +640,7 @@ export type Database = {
         Update: {
           announcement?: string
           commission_rate?: number
+          content?: Json
           id?: number
           support_email?: string
           updated_at?: string
