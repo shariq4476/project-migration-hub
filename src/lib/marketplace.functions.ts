@@ -16,7 +16,9 @@ const unwrap = <T>(result: { data: T; error: { message: string } | null }): NonN
   if (data === null || data === undefined) throw new Error("Requested record was not found.");
   return data;
 };
-function mapListing(row: ListingRow, name?: string): Listing {
+type SellerProfile = { display_name: string; created_at: string; country: string | null; id_verified: boolean; phone_verified: boolean; payment_verified: boolean };
+function mapListing(row: ListingRow, profile?: SellerProfile): Listing {
+  const name = profile?.display_name;
   return {
     id: row.slug,
     databaseId: row.id,
@@ -43,7 +45,12 @@ function mapListing(row: ListingRow, name?: string): Listing {
       rating: 0,
       reviews: 0,
       deals: 0,
-      verified: false,
+      verified: Boolean(profile?.id_verified),
+      memberSince: profile?.created_at,
+      country: profile?.country ?? undefined,
+      idVerified: Boolean(profile?.id_verified),
+      phoneVerified: Boolean(profile?.phone_verified),
+      paymentVerified: Boolean(profile?.payment_verified),
     },
   };
 }
@@ -74,10 +81,10 @@ export const readMarketplace = createServerFn({ method: "GET" }).handler(async (
   );
   const ids = [...new Set(rows.map((r) => r.seller_id).filter((id): id is string => Boolean(id)))];
   const names = ids.length
-    ? unwrap(await client.from("profiles").select("id,display_name").in("id", ids))
+    ? unwrap(await client.from("profiles").select("id,display_name,created_at,country,id_verified,phone_verified,payment_verified").in("id", ids))
     : [];
   const listings = rows.map((row) =>
-    mapListing(row, names.find((p) => p.id === row.seller_id)?.display_name),
+    mapListing(row, names.find((p) => p.id === row.seller_id)),
   );
   for (const listing of listings) {
     if (listing.sellerId) {
@@ -491,7 +498,7 @@ export const readAdmin = createServerFn({ method: "POST" })
     )
       throw new Error("Administrator access is required.");
     const c = context.supabase;
-    const [listings, reviews, deals, reports, tickets, settings, payment, users, audit, suspended] = await Promise.all([
+    const [listings, reviews, deals, reports, tickets, settings, payment, users, audit, suspended, verification] = await Promise.all([
       c.from("listings").select("*").order("created_at", { ascending: false }),
       c.from("listing_reviews").select("*"),
       c.from("deals").select("*,listings(title,slug)").order("created_at", { ascending: false }),
@@ -505,6 +512,7 @@ export const readAdmin = createServerFn({ method: "POST" })
       c.rpc("admin_list_users"),
       c.from("admin_audit").select("*").order("created_at", { ascending: false }).limit(100),
       c.from("profiles").select("id").eq("suspended", true),
+      c.from("profiles").select("id,id_verified,phone_verified,payment_verified"),
     ]);
     return {
       userId: context.userId,
@@ -518,6 +526,7 @@ export const readAdmin = createServerFn({ method: "POST" })
       payment: unwrap(payment),
       audit: optional(audit) ?? [],
       suspendedIds: (optional(suspended) ?? []).map((p) => p.id),
+      verification: optional(verification) ?? [],
     };
   });
 export const adminCommand = createServerFn({ method: "POST" })
@@ -546,6 +555,12 @@ export const adminCommand = createServerFn({ method: "POST" })
       }),
       z.object({ kind: z.literal("delete_listing"), id: z.string().uuid() }),
       z.object({ kind: z.literal("suspend"), id: z.string().uuid(), suspended: z.boolean() }),
+      z.object({
+        kind: z.literal("verify"),
+        id: z.string().uuid(),
+        check: z.enum(["id", "phone", "payment"]),
+        value: z.boolean(),
+      }),
       z.object({ kind: z.literal("announcement"), text: z.string().max(300) }),
       z.object({ kind: z.literal("commission"), rate: z.number().min(0).max(50) }),
       z.object({
@@ -594,6 +609,8 @@ export const adminCommand = createServerFn({ method: "POST" })
       );
     if (data.kind === "suspend")
       optional(await c.rpc("admin_set_suspended", { _user: data.id, _suspended: data.suspended }));
+    if (data.kind === "verify")
+      optional(await c.rpc("admin_set_verification", { _user: data.id, _kind: data.check, _value: data.value }));
     if (data.kind === "announcement")
       optional(await c.rpc("admin_set_announcement", { _text: data.text.trim() }));
     const logged: Record<string, string> = {
