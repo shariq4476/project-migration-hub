@@ -27,6 +27,11 @@ function Sell() {
           <p>Loading your account…</p>
         ) : user && account.loading ? (
           <p>Loading your account…</p>
+        ) : user && account.error ? (
+          <div role="alert" className="space-y-3">
+            <p>Could not load your account type.</p>
+            <Button variant="outline" onClick={() => account.retry()}>Try again</Button>
+          </div>
         ) : user && account.type !== "seller" ? (
           <div className="max-w-xl space-y-5">
             <h2 className="text-2xl">Selling needs a seller account</h2>

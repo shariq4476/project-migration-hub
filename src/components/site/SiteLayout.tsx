@@ -1,11 +1,12 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import { ShieldCheck, Menu, X, LogOut } from "lucide-react";
+import { ShieldCheck, Menu, X, LogOut, ArrowLeftRight, LoaderCircle } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Megaphone } from "lucide-react";
 import { useSession } from "@/hooks/use-session";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useAccountType } from "@/hooks/use-account-type";
 
 const nav = [
   { to: "/marketplace", label: "Marketplace" },
@@ -28,6 +29,8 @@ export function Logo({ dark = false }: { dark?: boolean }) {
 export function SiteLayout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const { user } = useSession();
+  const account = useAccountType();
+  const isSeller = account.type === "seller";
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   async function signOut() {
@@ -55,9 +58,9 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         </div>
       )}
       <header className="sticky top-0 z-40 border-b border-navy-2 bg-navy">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4">
+        <div className="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <Logo dark />
-          <nav className="hidden gap-6 md:flex">
+          <nav className="hidden gap-6 lg:flex">
             {nav.map((n) => (
               <Link
                 key={n.to}
@@ -70,6 +73,20 @@ export function SiteLayout({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            {user && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-navy-foreground"
+                disabled={account.loading || account.switching || !!account.error}
+                aria-label={`Switch to ${isSeller ? "buyer" : "seller"} account`}
+                title={`Switch to ${isSeller ? "buyer" : "seller"} account`}
+                onClick={() => account.setType(isSeller ? "buyer" : "seller")}
+              >
+                {account.switching ? <LoaderCircle className="animate-spin" /> : <ArrowLeftRight />}
+                <span>{account.loading ? "Loading…" : account.error ? "Unavailable" : isSeller ? "Seller" : "Buyer"}</span>
+              </Button>
+            )}
             <Button asChild size="sm" variant="outline" className="hidden sm:inline-flex">
               <Link to={user ? "/dashboard" : "/auth"}>{user ? "My account" : "Sign in"}</Link>
             </Button>
@@ -86,12 +103,14 @@ export function SiteLayout({ children }: { children: ReactNode }) {
               </Button>
             )}
             <Button asChild size="sm">
-              <Link to="/sell">Sell a website</Link>
+              <Link to={user && !isSeller ? "/marketplace" : "/sell"}>
+                {user ? (isSeller ? "New listing" : "Browse websites") : "Sell a website"}
+              </Link>
             </Button>
             <Button
               size="icon"
               variant="ghost"
-              className="text-navy-foreground md:hidden"
+              className="text-navy-foreground lg:hidden"
               aria-label={open ? "Close navigation" : "Open navigation"}
               aria-expanded={open}
               onClick={() => setOpen(!open)}
@@ -102,7 +121,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         </div>
         {open && (
           <nav
-            className="border-t border-navy-2 px-4 py-5 md:hidden"
+            className="border-t border-navy-2 px-4 py-5 lg:hidden"
             onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
           >
             {nav.map((n) => (

@@ -47,7 +47,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 function Dashboard() {
   const { data } = useSuspenseQuery(dashboardQuery);
-  const [tab, setTab] = useState("Overview");
+  const [selectedTab, setTab] = useState("Overview");
   const [busy, setBusy] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -75,8 +75,9 @@ function Dashboard() {
   const notifications = buildNotifications(data.userId, data.offers, data.deals, data.tickets);
   const notif = useReadNotifications();
   const unreadCount = notifications.filter((n) => !notif.read.includes(n.id)).length;
-  const isSeller = data.profile.account_type === "seller";
   const account = useAccountType();
+  const isSeller = (account.type ?? data.profile.account_type) === "seller";
+  const tab = !isSeller && selectedTab === "Listings" ? "Overview" : selectedTab;
   const sellerOnly = ["Listings"];
   const menuAll = [
     { id: "Overview", icon: LayoutDashboard, count: undefined },
@@ -103,7 +104,7 @@ function Dashboard() {
     <SiteLayout>
       <div className="bg-muted/40">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 lg:grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="lg:sticky lg:top-24 lg:self-start">
+          <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-xl border bg-card p-4 shadow-[var(--shadow-card)]">
               <div className="flex items-center gap-3 border-b pb-4">
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary text-lg font-semibold text-primary-foreground">
@@ -550,11 +551,17 @@ function Dashboard() {
                 <Button
                   className="mt-4"
                   variant={isSeller ? "outline" : "default"}
-                  disabled={account.switching}
+                  disabled={account.switching || account.loading || !!account.error}
                   onClick={() => account.setType(isSeller ? "buyer" : "seller")}
                 >
-                  {isSeller ? "Switch to buyer account" : "Become a seller"}
+                  {account.switching ? "Switching…" : isSeller ? "Switch to buyer account" : "Switch to seller account"}
                 </Button>
+                {account.error && (
+                  <p role="alert" className="mt-3 text-sm text-destructive">
+                    Could not load your account type.
+                    <Button variant="link" size="sm" onClick={() => account.retry()}>Try again</Button>
+                  </p>
+                )}
               </div>
             )}
             {tab === "Settings" && (
