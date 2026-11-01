@@ -9,6 +9,7 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 ## ClicksSpot architecture
+- Use the shared account-type query for header, selling and dashboard presentation; confirmed profile updates synchronize its cache and dashboard data so account controls cannot disagree.
 - Preserve this project's pinned TanStack versions and generated Cloud integration; imported configuration must not replace them.
 - Public marketplace reads use server publishable clients with React Query loaders; private actions use authenticated server functions and RLS.
 - SQL functions own purchases, bidding and deal state changes under row locks so concurrent requests cannot bypass transaction rules.

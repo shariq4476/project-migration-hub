@@ -47,7 +47,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 function Dashboard() {
   const { data } = useSuspenseQuery(dashboardQuery);
-  const [tab, setTab] = useState("Overview");
+  const [selectedTab, setTab] = useState("Overview");
   const [busy, setBusy] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -75,8 +75,9 @@ function Dashboard() {
   const notifications = buildNotifications(data.userId, data.offers, data.deals, data.tickets);
   const notif = useReadNotifications();
   const unreadCount = notifications.filter((n) => !notif.read.includes(n.id)).length;
-  const isSeller = data.profile.account_type === "seller";
   const account = useAccountType();
+  const isSeller = (account.type ?? data.profile.account_type) === "seller";
+  const tab = !isSeller && selectedTab === "Listings" ? "Overview" : selectedTab;
   const sellerOnly = ["Listings"];
   const menuAll = [
     { id: "Overview", icon: LayoutDashboard, count: undefined },
@@ -550,11 +551,17 @@ function Dashboard() {
                 <Button
                   className="mt-4"
                   variant={isSeller ? "outline" : "default"}
-                  disabled={account.switching}
+                  disabled={account.switching || account.loading || !!account.error}
                   onClick={() => account.setType(isSeller ? "buyer" : "seller")}
                 >
-                  {isSeller ? "Switch to buyer account" : "Become a seller"}
+                  {account.switching ? "Switching…" : isSeller ? "Switch to buyer account" : "Switch to seller account"}
                 </Button>
+                {account.error && (
+                  <p role="alert" className="mt-3 text-sm text-destructive">
+                    Could not load your account type.
+                    <Button variant="link" size="sm" onClick={() => account.retry()}>Try again</Button>
+                  </p>
+                )}
               </div>
             )}
             {tab === "Settings" && (

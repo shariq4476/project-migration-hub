@@ -16,7 +16,7 @@ export function useAccountType() {
       const { data, error } = await supabase
         .from("profiles")
         .select("account_type")
-        .eq("id", user!.id)
+        .eq("id", user?.id ?? "")
         .single();
       if (error) throw error;
       return data.account_type as AccountType;
@@ -24,17 +24,26 @@ export function useAccountType() {
   });
   const change = useMutation({
     mutationFn: async (type: AccountType) => {
-      const { error } = await supabase
+      if (!user) throw new Error("Sign in to switch your account.");
+      const { data, error } = await supabase
         .from("profiles")
         .update({ account_type: type, updated_at: new Date().toISOString() })
-        .eq("id", user!.id);
+        .eq("id", user.id)
+        .select("account_type")
+        .single();
       if (error) throw error;
+      if (data.account_type !== type) throw new Error("Your account type could not be updated.");
+      return type;
     },
     onSuccess: async (_d, type) => {
-      await qc.invalidateQueries();
+      qc.setQueryData(["account-type", user?.id], type);
+      qc.setQueryData(["dashboard"], (current: { profile: { account_type: string } } | undefined) =>
+        current ? { ...current, profile: { ...current.profile, account_type: type } } : current,
+      );
+      await qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success(type === "seller" ? "You now have a seller account" : "You now have a buyer account");
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Could not switch account"),
   });
-  return { type: query.data, loading: query.isLoading, setType: change.mutate, switching: change.isPending };
+  return { type: query.data, loading: query.isPending && !!user, error: query.error, retry: query.refetch, setType: change.mutate, switching: change.isPending };
 }

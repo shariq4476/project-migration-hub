@@ -1,5 +1,7 @@
 # ClicksSpot completion
 
+- [ ] Add header account switch and synchronize buyer/seller settings; verify switching signed in.
+
 - [x] Import all original pages and design without source credentials.
 - [x] Move schema and live listing reads to Lovable Cloud.
 - [x] Implement accounts, password recovery and profile/payout settings.
