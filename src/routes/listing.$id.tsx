@@ -2,7 +2,8 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { Pkr } from "@/hooks/use-pkr-rate";
 import { useSuspenseQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { BadgeCheck, Flag, Heart, Share2, Gavel, Globe } from "lucide-react";
+import { BadgeCheck, Flag, Heart, Share2, Gavel, Globe, ShieldCheck, Mail, Phone, Landmark, Star, MapPin, CalendarDays } from "lucide-react";
+import type { Listing } from "@/lib/listings";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -271,13 +272,7 @@ function ListingPage() {
               transfer.
             </p>
           </div>
-          <div className="border-t pt-5">
-            <h2 className="text-lg">Seller</h2>
-            <p className="mt-3 font-medium">{l.seller.name}</p>
-            {l.sellerId === null && (
-              <p className="mt-1 text-xs text-muted-foreground">Sample seller profile</p>
-            )}
-          </div>
+          <SellerCard listing={l} others={others} />
         </aside>
       </div>
       {similar.length > 0 && (
@@ -368,5 +363,78 @@ function ListingPage() {
         </DialogContent>
       </Dialog>
     </SiteLayout>
+  );
+}
+
+function SellerCard({ listing: l, others }: { listing: Listing; others: Listing[] }) {
+  const s = l.seller;
+  const sample = l.sellerId === null;
+  const initials = s.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  const since = s.memberSince
+    ? new Date(s.memberSince).toLocaleDateString(undefined, { month: "short", year: "numeric" })
+    : null;
+  const checks = [
+    { label: "ID verified", on: sample ? s.verified : Boolean(s.idVerified), icon: ShieldCheck },
+    { label: "Email verified", on: !sample, icon: Mail },
+    { label: "Phone verified", on: Boolean(s.phoneVerified), icon: Phone },
+    { label: "Payment method verified", on: Boolean(s.paymentVerified), icon: Landmark },
+  ];
+  return (
+    <div className="border-t pt-5">
+      <h2 className="text-lg">About the seller</h2>
+      <div className="mt-4 flex items-center gap-3">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-base font-semibold text-primary-foreground">
+          {initials || "?"}
+        </div>
+        <div className="min-w-0">
+          <p className="flex items-center gap-1 truncate font-medium">
+            {s.name}
+            {(sample ? s.verified : s.idVerified) && <BadgeCheck className="h-4 w-4 shrink-0 text-primary" aria-label="Verified" />}
+          </p>
+          <p className="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
+            {s.country && (<span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{s.country}</span>)}
+            {since && (<span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />Member since {since}</span>)}
+            {sample && <span>Sample seller profile</span>}
+          </p>
+        </div>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-2 text-center">
+        <div className="rounded-md bg-muted p-2">
+          <p className="flex items-center justify-center gap-1 font-semibold">
+            <Star className="h-4 w-4 text-primary" />{s.reviews ? s.rating.toFixed(1) : "—"}
+          </p>
+          <p className="text-xs text-muted-foreground">{s.reviews} reviews</p>
+        </div>
+        <div className="rounded-md bg-muted p-2">
+          <p className="font-semibold">{s.deals}</p>
+          <p className="text-xs text-muted-foreground">completed deals</p>
+        </div>
+      </div>
+      <ul className="mt-4 space-y-2 text-sm">
+        {checks.map((c) => (
+          <li key={c.label} className={`flex items-center gap-2 ${c.on ? "" : "text-muted-foreground"}`}>
+            <c.icon className={`h-4 w-4 ${c.on ? "text-primary" : ""}`} />
+            {c.label}
+            <span className="ml-auto text-xs">{c.on ? "Yes" : "Not yet"}</span>
+          </li>
+        ))}
+      </ul>
+      {others.length > 0 && (
+        <div className="mt-4">
+          <p className="text-xs font-medium uppercase text-muted-foreground">More from this seller</p>
+          <ul className="mt-2 space-y-1 text-sm">
+            {others.slice(0, 3).map((o) => (
+              <li key={o.id}>
+                <Link to="/listing/$id" params={{ id: o.id }} className="hover:underline">{o.title}</Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div className="mt-4 flex gap-2 rounded-md border bg-accent p-3 text-xs text-accent-foreground">
+        <ShieldCheck className="h-4 w-4 shrink-0" />
+        Your payment is held by ClicksSpot escrow until you confirm the transfer. Never pay a seller directly.
+      </div>
+    </div>
   );
 }
