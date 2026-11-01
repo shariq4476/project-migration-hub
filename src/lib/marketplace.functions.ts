@@ -118,7 +118,7 @@ export const readDashboard = createServerFn({ method: "POST" })
     const uid = context.userId;
     const [profile, listings, deals, offers, bids, watchlist, payout, tickets, roles] =
       await Promise.all([
-        c.from("profiles").select("id,display_name,bio,account_type").eq("id", uid).single(),
+        c.from("profiles").select("id,display_name,bio,account_type,country,id_verified,phone_verified,payment_verified").eq("id", uid).single(),
         c
           .from("listings")
           .select("*")
