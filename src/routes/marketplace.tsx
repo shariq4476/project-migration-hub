@@ -14,6 +14,8 @@ import { ListingCard } from "@/components/site/ListingCard";
 import type React from "react";
 import { categories, filterListings, type ListingFilters } from "@/lib/listings";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSiteContent, siteContentQuery } from "@/hooks/use-site-content";
+import { managedHead } from "@/components/site/ManagedPage";
 import { marketplaceQuery } from "@/lib/marketplace.queries";
 
 const searchSchema = z.object({
@@ -26,30 +28,16 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/marketplace")({
-  loader: ({ context }) => context.queryClient.ensureQueryData(marketplaceQuery),
+  loader: async ({ context }) => { const [content] = await Promise.all([context.queryClient.ensureQueryData(siteContentQuery), context.queryClient.ensureQueryData(marketplaceQuery)]); return content; },
   validateSearch: searchSchema,
-  head: () => ({
-    meta: [
-      { title: "Marketplace — Websites for sale in Pakistan & South Asia | ClicksSpot" },
-      {
-        name: "description",
-        content: "Browse verified AdSense blogs, affiliate sites, online stores and portals for sale.",
-      },
-      { property: "og:title", content: "ClicksSpot Marketplace" },
-      {
-        property: "og:description",
-        content: "Browse verified websites for sale across Pakistan & South Asia.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ loaderData }) => managedHead("marketplace", loaderData),
   component: Marketplace,
 });
 
 const ALL = "all";
 
 function Marketplace() {
+  const c = useSiteContent();
   const { data: listings } = useSuspenseQuery(marketplaceQuery);
   const s = Route.useSearch();
   const navigate = useNavigate({ from: "/marketplace" });
@@ -60,12 +48,12 @@ function Marketplace() {
   return (
     <SiteLayout>
       <PageHeader
-        title="Marketplace"
-        subtitle="Verified websites from Pakistan & South Asia."
+        title={c.pages.marketplace.title}
+        subtitle={c.pages.marketplace.subtitle}
       />
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside aria-label="Filters" className="lg:sticky lg:top-24 lg:self-start">
-          <div className="space-y-5 rounded-xl border bg-card p-5 shadow-[var(--shadow-card)]">
+          <div className="space-y-5 rounded-md border bg-card p-5 shadow-[var(--shadow-card)]">
             <div className="flex items-center justify-between">
               <h2 className="font-sans text-base font-semibold">Filters</h2>
               <Button variant="ghost" size="sm" onClick={() => navigate({ search: {} })}>
@@ -87,19 +75,20 @@ function Marketplace() {
                 {[{ id: undefined, label: "All categories" }, ...categories].map((c) => {
                   const active = s.category === c.id;
                   return (
-                    <button
+                    <Button
                       key={c.label}
+                      variant="ghost"
                       type="button"
                       aria-pressed={active}
                       onClick={() => set({ category: c.id as ListingFilters["category"] })}
-                      className={`rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                      className={`justify-start rounded-md px-3 py-2 text-left text-sm transition-colors ${
                         active
                           ? "bg-primary text-primary-foreground"
                           : "text-foreground hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
                       {c.label}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -176,7 +165,7 @@ function Marketplace() {
             </div>
           </div>
           {results.length === 0 ? (
-            <div className="mt-6 rounded-xl border border-dashed p-12 text-center">
+            <div className="mt-6 rounded-md border border-dashed p-12 text-center">
               <p className="font-medium">No listings match your filters.</p>
               <Button variant="outline" className="mt-4" onClick={() => navigate({ search: {} })}>
                 Clear filters
