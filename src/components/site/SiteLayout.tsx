@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import { ShieldCheck, Menu, X, LogOut, ArrowLeftRight, LoaderCircle } from "lucide-react";
+import { ShieldCheck, Menu, X, LogOut, ArrowLeftRight, LoaderCircle, ArrowRight } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Megaphone } from "lucide-react";
 import { useSession } from "@/hooks/use-session";
@@ -12,17 +12,18 @@ import { useCurrency } from "@/hooks/use-currency";
 import { currencies, type CurrencyCode } from "@/lib/currency";
 
 const nav = [
-  { to: "/marketplace", label: "Marketplace" },
-  { to: "/how-it-works", label: "How it works" },
-  { to: "/fees", label: "Fees" },
-  { to: "/faq", label: "FAQ" },
+  { to: "/marketplace", label: "marketplace" },
+  { to: "/how-it-works", label: "how" },
+  { to: "/fees", label: "fees" },
+  { to: "/trust-safety", label: "trust" },
+  { to: "/contact", label: "contact" },
 ] as const;
 
 export function Logo({ dark = false }: { dark?: boolean }) {
   const { siteName } = useSiteContent();
   return (
-    <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold">
-      <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+    <Link to="/" className="flex items-center gap-2 font-display text-xl font-bold">
+      <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
         {siteName.charAt(0).toUpperCase()}
       </span>
       <span className={dark ? "text-navy-foreground" : "text-foreground"}>{siteName}</span>
@@ -63,17 +64,17 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         </div>
       )}
       <header className="sticky top-0 z-40 border-b border-navy-2 bg-navy">
-        <div className="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <div className="mx-auto flex min-h-20 max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <Logo dark />
-          <nav className="hidden gap-6 lg:flex">
+          <nav className="hidden items-center gap-5 xl:flex">
             {nav.map((n) => (
               <Link
                 key={n.to}
                 to={n.to}
                 className="text-sm text-navy-muted hover:text-navy-foreground"
-                activeProps={{ className: "text-sm text-primary" }}
+                activeProps={{ className: "text-sm text-primary font-semibold" }}
               >
-                {n.label}
+                {content.labels[n.label]}
               </Link>
             ))}
           </nav>
@@ -94,7 +95,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
               </Button>
             )}
             <Button asChild size="sm" variant="outline" className="hidden sm:inline-flex">
-              <Link to={user ? "/dashboard" : "/auth"}>{user ? "My account" : "Sign in"}</Link>
+              <Link to={user ? "/dashboard" : "/auth"}>{user ? content.labels.account : content.labels.signIn}</Link>
             </Button>
             {user && (
               <Button
@@ -110,13 +111,13 @@ export function SiteLayout({ children }: { children: ReactNode }) {
             )}
             <Button asChild size="sm">
               <Link to={user && !isSeller ? "/marketplace" : "/sell"}>
-                {user ? (isSeller ? "New listing" : "Browse websites") : "Sell a website"}
+                {user ? (isSeller ? content.labels.newListing : content.labels.browse) : content.labels.sell}
               </Link>
             </Button>
             <Button
               size="icon"
               variant="ghost"
-              className="text-navy-foreground lg:hidden"
+              className="text-navy-foreground xl:hidden"
               aria-label={open ? "Close navigation" : "Open navigation"}
               aria-expanded={open}
               onClick={() => setOpen(!open)}
@@ -127,7 +128,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         </div>
         {open && (
           <nav
-            className="border-t border-navy-2 px-4 py-5 lg:hidden"
+            className="border-t border-navy-2 px-4 py-5 xl:hidden"
             onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
           >
             {nav.map((n) => (
@@ -137,21 +138,26 @@ export function SiteLayout({ children }: { children: ReactNode }) {
                 className="block py-3 text-navy-foreground"
                 onClick={() => setOpen(false)}
               >
-                {n.label}
+                {content.labels[n.label]}
               </Link>
             ))}
             <Link to={user ? "/dashboard" : "/auth"} className="block py-3 text-primary">
-              {user ? "My account" : "Sign in"}
+              {user ? content.labels.account : content.labels.signIn}
             </Link>
           </nav>
         )}
       </header>
       <main className="flex-1">{children}</main>
       <footer className="bg-navy text-navy-muted">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-4">
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-6 border-b border-navy-2 px-4 py-10 md:flex-row md:items-center">
+          <div><h2 className="text-2xl text-navy-foreground">{content.labels.footerTitle}</h2><p className="mt-2 max-w-2xl text-sm">{content.labels.footerText}</p></div>
+          <Button asChild className="self-start md:self-auto"><Link to="/marketplace">{content.labels.browse}<ArrowRight /></Link></Button>
+        </div>
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div className="space-y-3">
             <Logo dark />
             <p className="text-sm">{content.footerAbout}</p>
+            {content.contactEmail && <a href={`mailto:${content.contactEmail}`} className="block text-sm hover:text-primary">{content.contactEmail}</a>}
             {content.contactPhone && <p className="text-sm">Phone: {content.contactPhone}</p>}
             {content.contactWhatsapp && (
               <a className="block text-sm hover:text-primary" href={`https://wa.me/${content.contactWhatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer">
@@ -159,32 +165,35 @@ export function SiteLayout({ children }: { children: ReactNode }) {
               </a>
             )}
             <p className="flex items-center gap-2 text-xs">
-              <ShieldCheck className="h-4 w-4 text-primary" /> Funds held until the buyer confirms
+              <ShieldCheck className="h-4 w-4 text-primary" /> {content.labels.footerTrust}
             </p>
           </div>
           <FooterCol
-            title="Marketplace"
+            title={content.labels.footerMarketplace}
             links={[
-              ["/marketplace", "Browse listings"],
-              ["/sell", "Sell a website"],
-              ["/how-it-works", "How it works"],
-              ["/fees", "Fees"],
+              ["/marketplace", content.labels.marketplace],
+              ["/sell", content.labels.sell],
+              ["/how-it-works", content.labels.how],
+              ["/fees", content.labels.fees],
             ]}
           />
           <FooterCol
-            title="Company"
+            title={content.labels.footerCompany}
             links={[
-              ["/about", "About"],
-              ["/faq", "FAQ"],
-              ["/contact", "Contact"],
+              ["/about", content.labels.about],
+              ["/faq", content.labels.faq],
+              ["/contact", content.labels.contact],
+              ["/buyer-guide", content.labels.buyers],
+              ["/seller-guide", content.labels.sellers],
+              ["/trust-safety", content.labels.trust],
             ]}
           />
           <FooterCol
-            title="Legal"
+            title={content.labels.footerLegal}
             links={[
-              ["/terms", "Terms of Service"],
-              ["/privacy", "Privacy Policy"],
-              ["/refund", "Refund Policy"],
+              ["/terms", content.labels.terms],
+              ["/privacy", content.labels.privacy],
+              ["/refund", content.labels.refund],
             ]}
           />
         </div>
@@ -196,7 +205,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
   );
 }
 
-function FooterCol({ title, links }: { title: string; links: [string, string][] }) {
+function FooterCol({ title, links }: { title: string; links: ["/marketplace" | "/sell" | "/how-it-works" | "/fees" | "/about" | "/faq" | "/contact" | "/buyer-guide" | "/seller-guide" | "/trust-safety" | "/terms" | "/privacy" | "/refund", string][] }) {
   return (
     <div>
       <h4 className="mb-3 text-sm font-semibold text-navy-foreground">{title}</h4>
@@ -213,12 +222,13 @@ function FooterCol({ title, links }: { title: string; links: [string, string][] 
   );
 }
 
-export function PageHeader({ title, subtitle }: { title: string; subtitle?: string | undefined }) {
+export function PageHeader({ title, subtitle, eyebrow }: { title: string; subtitle?: string | undefined; eyebrow?: string }) {
   return (
-    <section className="bg-hero text-navy-foreground">
-      <div className="mx-auto max-w-7xl px-4 py-16 md:py-20">
-        <h1 className="text-4xl font-bold md:text-5xl">{title}</h1>
-        {subtitle && <p className="mt-4 max-w-2xl text-lg text-navy-muted">{subtitle}</p>}
+    <section className="border-b bg-card">
+      <div className="mx-auto max-w-7xl px-4 py-12 md:py-16">
+        <Link to="/" className="mb-6 inline-flex items-center gap-2 text-xs font-medium text-muted-foreground"><span>Home</span><ArrowRight className="h-3 w-3" /><span>{eyebrow ?? title}</span></Link>
+        <h1 className="max-w-4xl text-3xl font-bold md:text-5xl">{title}</h1>
+        {subtitle && <p className="mt-5 max-w-3xl text-base leading-relaxed text-muted-foreground md:text-lg">{subtitle}</p>}
       </div>
     </section>
   );
