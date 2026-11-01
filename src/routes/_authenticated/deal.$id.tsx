@@ -1,5 +1,5 @@
 import type React from "react";
-import { Pkr, formatPkr, usePkrRate } from "@/hooks/use-pkr-rate";
+import { formatPkr, usePkrRate } from "@/hooks/use-pkr-rate";
 import { paymentMethods, paymentMethodLabel } from "@/lib/payment-methods";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
@@ -283,7 +283,7 @@ function Deal() {
             <dl className="grid divide-y border-t sm:grid-cols-3 sm:divide-x sm:divide-y-0">
               <Stat icon={<Receipt className="h-4 w-4" />} label="Agreed price">
                 <span className="text-xl font-semibold">{usdExact(amount)}</span>
-                <Pkr usd={amount} />
+
               </Stat>
               <Stat icon={<ShieldCheck className="h-4 w-4" />} label="ClicksSpot commission">
                 <span className="text-xl font-semibold">{usdExact(commission)}</span>

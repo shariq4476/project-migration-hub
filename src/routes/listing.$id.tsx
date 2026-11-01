@@ -1,6 +1,5 @@
 import { useCurrency } from "@/hooks/use-currency";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { Pkr } from "@/hooks/use-pkr-rate";
 import { useSuspenseQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { BadgeCheck, Flag, Heart, Share2, Gavel, Globe, ShieldCheck, Mail, Phone, Landmark, Star, MapPin, CalendarDays } from "lucide-react";
@@ -179,8 +178,6 @@ function ListingPage() {
               {l.type === "auction" ? "Highest bid / starting price" : "Asking price"}
             </p>
             <p className="mt-1 text-3xl">{usd(l.price)}</p>
-            <Pkr usd={l.price} className="mt-1 block text-sm text-muted-foreground" />
-            <p className="mt-1 text-xs text-muted-foreground">Rupee price uses the live dollar rate and updates every minute.</p>
             {l.sellerId && (
               <p className="mt-3 text-xs text-muted-foreground">
                 Seller:{" "}

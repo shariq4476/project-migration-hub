@@ -1,6 +1,5 @@
 import { useCurrency } from "@/hooks/use-currency";
 import { Link } from "@tanstack/react-router";
-import { Pkr } from "@/hooks/use-pkr-rate";
 import { BadgeCheck, Gavel } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { categories, compact, publicStatusLabel, usd, moneyShort, type Listing } from "@/lib/listings";
@@ -52,7 +51,6 @@ export function ListingCard({ l }: { l: Listing }) {
             {l.type === "auction" ? "Current bid" : "Asking price"}
           </div>
           <div className="font-display text-xl font-bold">{usd(l.price)}</div>
-          <Pkr usd={l.price} />
         </div>
         {l.seller.verified && (
           <span className="flex items-center gap-1 text-xs text-accent-foreground">
