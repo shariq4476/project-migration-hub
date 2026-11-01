@@ -1,3 +1,4 @@
+import { useCurrency } from "@/hooks/use-currency";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { Pkr } from "@/hooks/use-pkr-rate";
 import { useSuspenseQuery, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -50,6 +51,7 @@ export const Route = createFileRoute("/listing/$id")({
   component: ListingPage,
 });
 function ListingPage() {
+  useCurrency();
   const { id } = Route.useParams();
   const { data: listings } = useSuspenseQuery(marketplaceQuery);
   const l = listings.find((x) => x.id === id);
