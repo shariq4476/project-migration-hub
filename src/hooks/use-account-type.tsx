@@ -13,10 +13,11 @@ export function useAccountType() {
     queryKey: ["account-type", user?.id],
     enabled: !!user,
     queryFn: async () => {
+      if (!user) throw new Error("Sign in to view your account type.");
       const { data, error } = await supabase
         .from("profiles")
         .select("account_type")
-        .eq("id", user?.id ?? "")
+        .eq("id", user.id)
         .single();
       if (error) throw error;
       return data.account_type as AccountType;

@@ -104,7 +104,7 @@ function Dashboard() {
     <SiteLayout>
       <div className="bg-muted/40">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 lg:grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="lg:sticky lg:top-24 lg:self-start">
+          <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-xl border bg-card p-4 shadow-[var(--shadow-card)]">
               <div className="flex items-center gap-3 border-b pb-4">
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary text-lg font-semibold text-primary-foreground">
