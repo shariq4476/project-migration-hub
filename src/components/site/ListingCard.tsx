@@ -1,10 +1,12 @@
+import { useCurrency } from "@/hooks/use-currency";
 import { Link } from "@tanstack/react-router";
 import { Pkr } from "@/hooks/use-pkr-rate";
 import { BadgeCheck, Gavel } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { categories, compact, publicStatusLabel, usd, type Listing } from "@/lib/listings";
+import { categories, compact, publicStatusLabel, usd, moneyShort, type Listing } from "@/lib/listings";
 
 export function ListingCard({ l }: { l: Listing }) {
+  useCurrency();
   const cat = categories.find((c) => c.id === l.category)?.label;
   return (
     <Link
@@ -40,8 +42,8 @@ export function ListingCard({ l }: { l: Listing }) {
       <h3 className="font-semibold leading-snug group-hover:text-primary">{l.title}</h3>
       <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{l.summary}</p>
       <dl className="mt-4 grid grid-cols-3 gap-2 text-xs">
-        <Metric k="Revenue/mo" v={usd(l.monthlyRevenue)} />
-        <Metric k="Profit/mo" v={usd(l.monthlyProfit)} />
+        <Metric k="Revenue/mo" v={moneyShort(l.monthlyRevenue)} />
+        <Metric k="Profit/mo" v={moneyShort(l.monthlyProfit)} />
         <Metric k="Traffic/mo" v={compact(l.monthlyTraffic)} />
       </dl>
       <div className="mt-5 flex items-end justify-between border-t pt-4">

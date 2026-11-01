@@ -1,3 +1,4 @@
+import { useCurrency } from "@/hooks/use-currency";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { paymentMethods, type PaymentMethodId } from "@/lib/payment-methods";
 import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
@@ -46,6 +47,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 function Dashboard() {
+  useCurrency();
   const { data } = useSuspenseQuery(dashboardQuery);
   const [selectedTab, setTab] = useState("Overview");
   const [busy, setBusy] = useState(false);

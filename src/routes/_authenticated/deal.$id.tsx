@@ -30,7 +30,7 @@ import { SiteLayout } from "@/components/site/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField } from "@/components/site/FormField";
-import { usd } from "@/lib/listings";
+import { usdExact } from "@/lib/listings";
 import { stageLabels, permittedActions, type DealAction } from "@/lib/workflow";
 import { pageMeta } from "@/lib/seo";
 export const Route = createFileRoute("/_authenticated/deal/$id")({
@@ -282,15 +282,15 @@ function Deal() {
 
             <dl className="grid divide-y border-t sm:grid-cols-3 sm:divide-x sm:divide-y-0">
               <Stat icon={<Receipt className="h-4 w-4" />} label="Agreed price">
-                <span className="text-xl font-semibold">{usd(amount)}</span>
+                <span className="text-xl font-semibold">{usdExact(amount)}</span>
                 <Pkr usd={amount} />
               </Stat>
               <Stat icon={<ShieldCheck className="h-4 w-4" />} label="ClicksSpot commission">
-                <span className="text-xl font-semibold">{usd(commission)}</span>
+                <span className="text-xl font-semibold">{usdExact(commission)}</span>
               </Stat>
               <Stat icon={<Wallet className="h-4 w-4" />} label="Seller receives">
                 <span className="text-xl font-semibold text-primary">
-                  {usd(amount - commission)}
+                  {usdExact(amount - commission)}
                 </span>
               </Stat>
             </dl>
@@ -504,9 +504,9 @@ function Deal() {
                         <p className="text-xs text-muted-foreground">
                           {paymentMethods.find((m) => m.id === method)?.local
                             ? pkrRate
-                              ? `Send ${formatPkr(amount * pkrRate)} (${usd(amount)} at the live rate of Rs ${pkrRate.toFixed(2)} per $1). Put the deal ID in the payment note and use the transaction ID as reference.`
-                              : `Send the rupee amount equal to ${usd(amount)} at the live rate. Put the deal ID in the payment note.`
-                            : `Send exactly ${usd(amount)} in USDT. Match the network.`}{" "}
+                              ? `Send ${formatPkr(amount * pkrRate)} (${usdExact(amount)} at the live rate of Rs ${pkrRate.toFixed(2)} per $1). Put the deal ID in the payment note and use the transaction ID as reference.`
+                              : `Send the rupee amount equal to ${usdExact(amount)} at the live rate. Put the deal ID in the payment note.`
+                            : `Send exactly ${usdExact(amount)} in USDT. Match the network.`}{" "}
                           Upload payment proof before submitting.
                         </p>
                       </>

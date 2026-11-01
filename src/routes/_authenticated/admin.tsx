@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField } from "@/components/site/FormField";
-import { usd } from "@/lib/listings";
+import { usdExact } from "@/lib/listings";
 import { stageLabels } from "@/lib/workflow";
 import { pageMeta } from "@/lib/seo";
 import { stageTone, statusTone, toCsv } from "@/lib/admin-ui";
@@ -228,8 +228,8 @@ function Admin() {
             {tab === "Overview" && (
               <div className="space-y-8">
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  <Stat label="Completed volume" value={usd(volume)} />
-                  <Stat label="Commission earned" value={usd(revenue)} />
+                  <Stat label="Completed volume" value={usdExact(volume)} />
+                  <Stat label="Commission earned" value={usdExact(revenue)} />
                   <Stat label="Open deals" value={openDeals} onClick={() => setTab("Deals")} />
                   <Stat label="Members" value={data.users.length} onClick={() => setTab("Users")} />
                 </div>
@@ -238,7 +238,7 @@ function Admin() {
                   <MiniStat label="New listings (30 days)" value={newListings30} />
                   <MiniStat
                     label="Average deal size"
-                    value={usd(
+                    value={usdExact(
                       data.deals.length
                         ? data.deals.reduce((s, d) => s + Number(d.amount), 0) / data.deals.length
                         : 0,
@@ -301,7 +301,7 @@ function Admin() {
                         <div>
                           <h2 className="text-xl">{l.title}</h2>
                           <p className="text-sm text-muted-foreground">
-                            {usd(Number(l.price))} · {l.url ?? "No URL"} ·{" "}
+                            {usdExact(Number(l.price))} · {l.url ?? "No URL"} ·{" "}
                             {l.seller_id ? "Seller account linked" : "Example listing"}
                           </p>
                         </div>
@@ -452,8 +452,8 @@ function Admin() {
                           <td className="py-3 pr-4 text-muted-foreground">
                             {userName.get(d.buyer_id)} → {userName.get(d.seller_id)}
                           </td>
-                          <td className="py-3 pr-4">{usd(Number(d.amount))}</td>
-                          <td className="py-3 pr-4">{usd(Number(d.commission))}</td>
+                          <td className="py-3 pr-4">{usdExact(Number(d.amount))}</td>
+                          <td className="py-3 pr-4">{usdExact(Number(d.commission))}</td>
                           <td className="py-3 pr-4">
                             <span className="status-pill" data-tone={stageTone(d.stage)}>
                               {stageLabels[d.stage]}
