@@ -167,7 +167,7 @@ export function mergeContent(saved: unknown): SiteContent {
           for (const field of ["title", "subtitle", "eyebrow", "seoTitle", "seoDescription"] as const) {
             if (typeof fields[field] === "string" && fields[field].trim()) out.pages[id][field] = fields[field];
           }
-          if (isPairs(fields.sections)) out.pages[id].sections = fields.sections;
+          if (isPairs(fields["sections"])) out.pages[id].sections = fields["sections"];
         }
       }
     } else if (key === "labels") {
