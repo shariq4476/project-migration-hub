@@ -13,6 +13,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { SessionContext } from "@/hooks/use-session";
+import { fontOptions, fontStylesheet } from "@/lib/site-content";
+import { useSiteContent } from "@/hooks/use-site-content";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -96,7 +98,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=DM+Serif+Display&display=swap",
+        href: fontStylesheet,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
@@ -148,9 +150,21 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <SessionContext.Provider value={{ user, ready }}>
+        <FontApplier />
         <Outlet />
       </SessionContext.Provider>
       <Toaster />
     </QueryClientProvider>
   );
+}
+
+function FontApplier() {
+  const { font } = useSiteContent();
+  useEffect(() => {
+    const f = fontOptions[font];
+    const root = document.documentElement.style;
+    root.setProperty("--app-font-sans", `"${f.sans}", ui-sans-serif, system-ui, sans-serif`);
+    root.setProperty("--app-font-display", `"${f.display}", ui-sans-serif, system-ui, sans-serif`);
+  }, [font]);
+  return null;
 }
