@@ -574,6 +574,7 @@ function Dashboard() {
                     kind: "profile",
                     name: String(f.get("name")),
                     bio: String(f.get("bio")),
+                    country: String(f.get("country") ?? ""),
                     method: String(f.get("method")) as PaymentMethodId,
                     account: String(f.get("account")),
                   });
@@ -592,6 +593,24 @@ function Dashboard() {
                 <FormField label="Bio">
                   <Textarea name="bio" aria-label="Bio" defaultValue={data.profile.bio ?? ""} />
                 </FormField>
+                <FormField label="Country">
+                  <Input name="country" aria-label="Country" placeholder="Pakistan" defaultValue={data.profile.country ?? ""} />
+                </FormField>
+                <div className="rounded-md border p-4 text-sm">
+                  <p className="font-medium">Verification</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Not required to browse, buy or bid. Verified sellers get trust badges on their listings, and ID
+                    verification is required before a payout is released. Send your CNIC/passport through Support to
+                    get verified.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {([["id_verified", "ID"], ["phone_verified", "Phone"], ["payment_verified", "Payment method"]] as const).map(([k, label]) => (
+                      <span key={k} className="status-pill" data-tone={data.profile[k] ? "success" : "neutral"}>
+                        {data.profile[k] ? "✓ " : ""}{label} {data.profile[k] ? "verified" : "not verified"}
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <FormField label="Payout method">
                   <select
                     name="method"

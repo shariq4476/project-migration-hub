@@ -538,6 +538,26 @@ function Admin() {
                               {!isAdmin && !isMod && !suspended.has(u.id) && (
                                 <span className="text-muted-foreground">member</span>
                               )}
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {(["id", "phone", "payment"] as const).map((check) => {
+                                  const v = data.verification.find((p) => p.id === u.id);
+                                  const on = Boolean(v?.[`${check}_verified` as const]);
+                                  return (
+                                    <button
+                                      key={check}
+                                      type="button"
+                                      disabled={busy}
+                                      className="status-pill cursor-pointer"
+                                      data-tone={on ? "success" : "neutral"}
+                                      title={`${on ? "Remove" : "Mark"} ${check} verification`}
+                                      onClick={() => command({ kind: "verify", id: u.id, check, value: !on })}
+                                    >
+                                      {on ? "✓ " : ""}
+                                      {check === "id" ? "ID" : check === "phone" ? "Phone" : "Payment"}
+                                    </button>
+                                  );
+                                })}
+                              </div>
                             </td>
                             <td className="space-x-2 whitespace-nowrap py-3 text-right">
                               <Button

@@ -488,27 +488,39 @@ export type Database = {
         Row: {
           account_type: string
           bio: string | null
+          country: string | null
           created_at: string
           display_name: string
           id: string
+          id_verified: boolean
+          payment_verified: boolean
+          phone_verified: boolean
           suspended: boolean
           updated_at: string
         }
         Insert: {
           account_type?: string
           bio?: string | null
+          country?: string | null
           created_at?: string
           display_name?: string
           id: string
+          id_verified?: boolean
+          payment_verified?: boolean
+          phone_verified?: boolean
           suspended?: boolean
           updated_at?: string
         }
         Update: {
           account_type?: string
           bio?: string | null
+          country?: string | null
           created_at?: string
           display_name?: string
           id?: string
+          id_verified?: boolean
+          payment_verified?: boolean
+          phone_verified?: boolean
           suspended?: boolean
           updated_at?: string
         }
@@ -755,6 +767,10 @@ export type Database = {
       }
       admin_set_suspended: {
         Args: { _suspended: boolean; _user: string }
+        Returns: undefined
+      }
+      admin_set_verification: {
+        Args: { _kind: string; _user: string; _value: boolean }
         Returns: undefined
       }
       auction_summary: {

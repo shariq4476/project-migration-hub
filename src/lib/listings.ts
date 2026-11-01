@@ -43,7 +43,18 @@ export interface Listing {
   summary: string;
   description: string;
   verified: string[];
-  seller: { name: string; rating: number; reviews: number; deals: number; verified: boolean };
+  seller: {
+    name: string;
+    rating: number;
+    reviews: number;
+    deals: number;
+    verified: boolean;
+    memberSince?: string | undefined;
+    country?: string | undefined;
+    idVerified?: boolean;
+    phoneVerified?: boolean;
+    paymentVerified?: boolean;
+  };
 }
 
 export const listings: Listing[] = [
