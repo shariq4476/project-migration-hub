@@ -186,7 +186,7 @@
     --app-font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   }
   html {
-    font-size: 16.5px;
+    font-size: var(--app-font-size, 16.5px);
   }
   body {
     font-family: var(--app-font-sans);

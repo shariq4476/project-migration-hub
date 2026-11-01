@@ -12,8 +12,73 @@ export const fontStylesheet =
   "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=Lora:wght@500;600;700&family=Nunito+Sans:wght@400;600;700&family=Manrope:wght@400;500;600;700&family=DM+Serif+Display&display=swap";
 
 export type Pair = { title: string; text: string };
+
+export const colorFields = {
+  primary: { label: "Main colour (buttons, highlights)", def: "#16a34a" },
+  primaryText: { label: "Text on main colour", def: "#ffffff" },
+  navy: { label: "Header, footer & hero background", def: "#0f172a" },
+  navyText: { label: "Text on header & footer", def: "#ffffff" },
+  background: { label: "Page background", def: "#f8fafc" },
+  card: { label: "Cards & panels", def: "#ffffff" },
+  text: { label: "Body text", def: "#1e293b" },
+  heading: { label: "Headings", def: "#0f172a" },
+  muted: { label: "Secondary text", def: "#64748b" },
+  link: { label: "Links & info colour", def: "#2563eb" },
+  border: { label: "Borders", def: "#e2e8f0" },
+} as const;
+export type ColorId = keyof typeof colorFields;
+export type Colors = Record<ColorId, string>;
+export const defaultColors = Object.fromEntries(
+  Object.entries(colorFields).map(([k, v]) => [k, v.def]),
+) as Colors;
+const hex = /^#[0-9a-f]{6}$/i;
+
+/** CSS variable values the site theme uses for the chosen colours, sizes and corners. */
+export function themeVars(c: Colors, fontScale: number, radius: number): Record<string, string> {
+  const mix = (a: string, b: string, pct: number) => `color-mix(in oklab, ${a} ${pct}%, ${b})`;
+  return {
+    "--primary": c.primary,
+    "--primary-hover": mix(c.primary, "black", 85),
+    "--primary-foreground": c.primaryText,
+    "--ring": c.primary,
+    "--success": c.primary,
+    "--success-soft": mix(c.primary, "white", 10),
+    "--chart-1": c.primary,
+    "--sidebar-primary": c.primary,
+    "--sidebar-ring": c.primary,
+    "--navy": c.navy,
+    "--navy-2": mix(c.navy, c.navyText, 88),
+    "--navy-foreground": c.navyText,
+    "--navy-muted": mix(c.navyText, c.navy, 70),
+    "--sidebar": c.navy,
+    "--sidebar-accent": mix(c.navy, c.navyText, 88),
+    "--sidebar-border": mix(c.navy, c.navyText, 88),
+    "--gradient-hero": `linear-gradient(135deg, ${c.navy}, ${mix(c.navy, c.navyText, 85)})`,
+    "--background": c.background,
+    "--card": c.card,
+    "--popover": c.card,
+    "--foreground": c.text,
+    "--card-foreground": c.text,
+    "--popover-foreground": c.text,
+    "--heading": c.heading,
+    "--muted-foreground": c.muted,
+    "--muted": mix(c.border, c.background, 50),
+    "--secondary": mix(c.border, c.background, 50),
+    "--secondary-foreground": c.heading,
+    "--accent": mix(c.link, "white", 8),
+    "--accent-foreground": c.link,
+    "--info": c.link,
+    "--border": c.border,
+    "--input": c.border,
+    "--radius": `${radius}rem`,
+    "--app-font-size": `${fontScale}px`,
+  };
+}
 export interface SiteContent {
   font: FontId;
+  colors: Colors;
+  fontScale: number;
+  radius: number;
   siteName: string;
   heroBadge: string;
   heroTitle: string;
@@ -34,6 +99,9 @@ export interface SiteContent {
 
 export const defaultContent: SiteContent = {
   font: "jakarta",
+  colors: defaultColors,
+  fontScale: 16.5,
+  radius: 0.625,
   siteName: "ClicksSpot",
   heroBadge: "Pakistan & South Asia's website marketplace",
   heroTitle: "ClicksSpot",
@@ -79,7 +147,18 @@ export function mergeContent(saved: unknown): SiteContent {
   const s = saved as Record<string, unknown>;
   for (const key of Object.keys(defaultContent) as (keyof SiteContent)[]) {
     const v = s[key];
-    if (key === "font") {
+    if (key === "colors") {
+      const saved = (v && typeof v === "object" ? v : {}) as Record<string, unknown>;
+      out.colors = { ...defaultColors };
+      for (const id of Object.keys(defaultColors) as ColorId[]) {
+        const val = saved[id];
+        if (typeof val === "string" && hex.test(val)) out.colors[id] = val;
+      }
+    } else if (key === "fontScale") {
+      if (typeof v === "number" && v >= 14 && v <= 20) out.fontScale = v;
+    } else if (key === "radius") {
+      if (typeof v === "number" && v >= 0 && v <= 1.5) out.radius = v;
+    } else if (key === "font") {
       if (typeof v === "string" && v in fontOptions) out.font = v as FontId;
     } else if (key === "stats" || key === "features" || key === "testimonials") {
       if (isPairs(v) && v.length) out[key] = v;

@@ -9,6 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { FormField } from "@/components/site/FormField";
 import { useSiteContent, siteContentKey } from "@/hooks/use-site-content";
 import {
+  colorFields,
+  type ColorId,
+  type Colors,
   defaultContent,
   fontOptions,
   pairsToText,
@@ -43,6 +46,9 @@ export function SiteContentEditor() {
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
   const [font, setFont] = useState<FontId>(content.font);
+  const [colors, setColors] = useState<Colors>(content.colors);
+  const [fontScale, setFontScale] = useState(content.fontScale);
+  const [radius, setRadius] = useState(content.radius);
 
   async function save(next: SiteContent) {
     setBusy(true);
@@ -67,7 +73,7 @@ export function SiteContentEditor() {
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
-        const next: SiteContent = { ...content, font };
+        const next: SiteContent = { ...content, font, colors, fontScale, radius };
         for (const [k] of textFields) (next as unknown as Record<string, string>)[k] = String(fd.get(k) ?? "");
         for (const [k] of listFields) next[k] = textToPairs(String(fd.get(k) ?? ""));
         void save(next);
@@ -92,6 +98,31 @@ export function SiteContentEditor() {
           Body text looks like this in the selected font.
         </span>
       </p>
+      <FormField label={`Text size: ${fontScale}px`}>
+        <input type="range" min={14} max={20} step={0.5} value={fontScale} aria-label="Text size" className="w-full" onChange={(e) => setFontScale(Number(e.target.value))} />
+      </FormField>
+      <FormField label={`Corner roundness: ${radius}`}>
+        <input type="range" min={0} max={1.5} step={0.125} value={radius} aria-label="Corner roundness" className="w-full" onChange={(e) => setRadius(Number(e.target.value))} />
+      </FormField>
+      <div>
+        <h3 className="text-lg">Colours</h3>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {(Object.keys(colorFields) as ColorId[]).map((id) => (
+            <label key={id} className="flex items-center gap-3 rounded-md border p-2 text-sm">
+              <input type="color" value={colors[id]} aria-label={colorFields[id].label} className="h-9 w-12 cursor-pointer rounded border-0 bg-transparent" onChange={(e) => setColors({ ...colors, [id]: e.target.value })} />
+              <span className="flex-1">{colorFields[id].label}</span>
+              <code className="text-xs text-muted-foreground">{colors[id]}</code>
+            </label>
+          ))}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-3 rounded-md p-4" style={{ background: colors.navy, color: colors.navyText }}>
+          <span className="font-semibold">Preview</span>
+          <span className="rounded-md px-4 py-2 text-sm font-medium" style={{ background: colors.primary, color: colors.primaryText }}>Button</span>
+          <span className="rounded-md p-3 text-sm" style={{ background: colors.card, color: colors.text, border: `1px solid ${colors.border}` }}>
+            <b style={{ color: colors.heading }}>Card title</b> · <span style={{ color: colors.muted }}>secondary text</span> · <span style={{ color: colors.link }}>link</span>
+          </span>
+        </div>
+      </div>
       {textFields.map(([k, label, long]) => (
         <FormField key={k} label={label}>
           {long ? (
