@@ -13,6 +13,21 @@ describe("site content", () => {
   it("ignores unknown fonts", () => {
     expect(mergeContent({ font: "comic" }).font).toBe("jakarta");
   });
+  it("preserves partial page settings without losing other pages", () => {
+    const c = mergeContent({ pages: { about: { sections: [{ title: "", text: "" }] } } });
+    expect(c.pages.about.sections).toHaveLength(1);
+    expect(c.pages.faq.sections).toHaveLength(defaultContent.pages.faq.sections.length);
+    expect(c.pages.about).not.toBe(defaultContent.pages.about);
+  });
+  it("allows an administrator to remove optional repeated content", () => {
+    expect(mergeContent({ testimonials: [], stats: [] }).testimonials).toEqual([]);
+    expect(mergeContent({ testimonials: [], stats: [] }).stats).toEqual([]);
+  });
+  it("rejects malformed page sections and unknown page settings", () => {
+    const c = mergeContent({ pages: { about: { sections: [null] }, unknown: { sections: [] } } });
+    expect(c.pages.about.sections).toEqual(defaultContent.pages.about.sections);
+    expect(Object.keys(c.pages)).not.toContain("unknown");
+  });
   it("keeps admin colours and rejects invalid ones", () => {
     const c = mergeContent({ colors: { primary: "#ff0000", navy: "red" } });
     expect(c.colors.primary).toBe("#ff0000");
