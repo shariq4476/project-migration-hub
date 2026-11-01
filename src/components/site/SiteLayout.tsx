@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useAccountType } from "@/hooks/use-account-type";
 import { useSiteContent } from "@/hooks/use-site-content";
+import { useCurrency } from "@/hooks/use-currency";
+import { currencies, type CurrencyCode } from "@/lib/currency";
 
 const nav = [
   { to: "/marketplace", label: "Marketplace" },
@@ -76,6 +78,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            <CurrencySelect />
             {user && (
               <Button
                 variant="ghost"
@@ -218,5 +221,24 @@ export function PageHeader({ title, subtitle }: { title: string; subtitle?: stri
         {subtitle && <p className="mt-4 max-w-2xl text-lg text-navy-muted">{subtitle}</p>}
       </div>
     </section>
+  );
+}
+
+function CurrencySelect() {
+  const { code, setCode, updatedAt } = useCurrency();
+  return (
+    <select
+      aria-label="Currency"
+      title={updatedAt ? `Live rate updated ${new Date(updatedAt).toLocaleTimeString()}` : "Choose currency"}
+      value={code}
+      onChange={(e) => setCode(e.target.value as CurrencyCode)}
+      className="h-9 rounded-md border border-navy-2 bg-navy px-2 text-sm text-navy-foreground"
+    >
+      {currencies.map((c) => (
+        <option key={c.code} value={c.code}>
+          {c.code}
+        </option>
+      ))}
+    </select>
   );
 }

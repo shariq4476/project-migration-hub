@@ -1,3 +1,4 @@
+import { useCurrency } from "@/hooks/use-currency";
 import { Link } from "@tanstack/react-router";
 import { Pkr } from "@/hooks/use-pkr-rate";
 import { BadgeCheck, Gavel } from "lucide-react";
@@ -5,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { categories, compact, publicStatusLabel, usd, type Listing } from "@/lib/listings";
 
 export function ListingCard({ l }: { l: Listing }) {
+  useCurrency();
   const cat = categories.find((c) => c.id === l.category)?.label;
   return (
     <Link

@@ -18,7 +18,7 @@ const Ctx = createContext<{ code: CurrencyCode; rate: number; setCode: (c: Curre
 });
 export const useCurrency = () => useContext(Ctx);
 
-/** Holds the visitor's currency; remounts children when currency or live rate changes so every price re-renders. */
+/** Holds the visitor's currency. Switching remounts the page; components that call useCurrency() also refresh on each live rate update. */
 export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [code, setCodeState] = useState<CurrencyCode>("USD");
   const { data } = useQuery({ ...ratesQuery, enabled: code !== "USD" });
@@ -35,7 +35,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   };
   return (
     <Ctx.Provider value={{ code, rate: ready ? rate : 1, setCode, updatedAt: data?.fetchedAt }}>
-      <div key={ready ? `${code}-${rate}` : "USD"} className="contents">
+      <div key={ready ? code : "USD"} className="contents">
         {children}
       </div>
     </Ctx.Provider>
