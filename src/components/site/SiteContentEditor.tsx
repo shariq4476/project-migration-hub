@@ -52,7 +52,10 @@ export function SiteContentEditor() {
       .eq("id", 1)
       .select("id");
     setBusy(false);
-    if (error || !data?.length) return toast.error(error?.message ?? "Could not save site content.");
+    if (error || !data?.length) {
+      toast.error(error?.message ?? "Could not save site content.");
+      return;
+    }
     await qc.invalidateQueries({ queryKey: siteContentKey });
     toast.success("Site updated");
   }
